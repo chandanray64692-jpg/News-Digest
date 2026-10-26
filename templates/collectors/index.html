@@ -3,314 +3,428 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IDIGAS // Advanced Tactical Command Center</title>
+    <title>IDIGAS // Advanced Defence Intelligence</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --bg-obsidian: #0d1117; --surface-charcoal: #161b22; --surface-card: #21262d;
-            --border-muted: #30363d; --text-primary: #c9d1d9; --text-secondary: #8b949e;
-            --cyber-blue: #58a6ff; --tactical-red: #da3633; --warning-amber: #d29922; --intel-green: #30a14e;
+            --bg-darkest: #07090e;
+            --bg-panel: #0d1219;
+            --bg-card: #131923;
+            --border-subtle: #1f2a38;
+            --border-focus: #2f4055;
+            --cyber-blue: #38bdf8;
+            --tactical-red: #ef4444;
+            --alert-amber: #f59e0b;
+            --radar-green: #10b981;
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
         }
-        body { background-color: var(--bg-obsidian); color: var(--text-primary); font-family: 'Inter', sans-serif; overflow-x: hidden; }
-        .mono-text { font-family: 'JetBrains Mono', monospace; }
-        .live-pulse { animation: pulse-recon 2s infinite; }
-        @keyframes pulse-recon { 0% { opacity:0.4; } 50% { opacity:1; } 100% { opacity:0.4; } }
-        .navbar-custom { background-color: var(--surface-charcoal); border-bottom: 1px solid var(--border-muted); padding: 12px 24px; }
-        .sidebar { background-color: var(--surface-charcoal); border-right: 1px solid var(--border-muted); min-height: calc(100vh - 65px); padding: 20px 0; }
-        .sidebar .nav-heading { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-secondary); padding: 10px 24px; margin-top: 15px; }
-        .sidebar .nav-link { color: var(--text-primary); padding: 12px 24px; font-size: 14px; font-weight: 500; display: flex; align-items: center; border-left: 4px solid transparent; text-decoration: none; transition: all 0.2s; }
-        .sidebar .nav-link i { width: 20px; margin-right: 12px; font-size: 16px; color: var(--text-secondary); }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: rgba(88, 166, 255, 0.08); color: var(--cyber-blue); border-left: 4px solid var(--cyber-blue); font-weight: 600; }
-        .sidebar .nav-link:hover i, .sidebar .nav-link.active i { color: var(--cyber-blue); }
-        .intel-card { background-color: var(--surface-charcoal); border: 1px solid var(--border-muted); border-radius: 8px; padding: 22px; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
-        .card-blue { border-left: 4px solid var(--cyber-blue); }
-        .card-amber { border-left: 4px solid var(--warning-amber); }
-        .card-red { border-left: 4px solid var(--tactical-red); }
-        .card-green { border-left: 4px solid var(--intel-green); }
-        .advanced-news-card { background-color: var(--surface-card); border: 1px solid var(--border-muted); border-radius: 8px; margin-bottom: 16px; overflow: hidden; transition: transform 0.2s, border-color 0.2s; }
-        .advanced-news-card:hover { transform: translateY(-2px); border-color: var(--cyber-blue); }
-        .twitter-feed-panel { max-height: 380px; overflow-y: auto; padding-right: 5px; }
-        .twitter-card-log { background: rgba(255, 255, 255, 0.015); border: 1px solid var(--border-muted); border-radius: 8px; padding: 14px; margin-bottom: 12px; }
-        .badge-critical { background-color: var(--tactical-red); color: white; }
-        .badge-high { background-color: var(--warning-amber); color: black; }
-        .badge-normal { background-color: var(--cyber-blue); color: black; }
-        .btn-tactical { background-color: transparent; border: 1px solid var(--border-muted); color: var(--text-primary); font-weight: 500; padding: 10px 16px; transition: all 0.2s; }
-        .btn-tactical:hover { background-color: var(--cyber-blue); color: var(--bg-obsidian); border-color: var(--cyber-blue); }
+
+        body {
+            background-color: var(--bg-darkest);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        .mono { font-family: 'JetBrains Mono', monospace; }
+
+        /* Top Nav Bar */
+        .top-navbar {
+            background-color: var(--bg-panel);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 10px 24px;
+        }
+
+        /* DEFCON Warning Bar */
+        .defcon-bar {
+            background: linear-gradient(90deg, rgba(239, 68, 68, 0.22) 0%, rgba(13, 18, 25, 0.9) 100%);
+            border-bottom: 1px solid var(--tactical-red);
+            padding: 8px 24px;
+            font-size: 13px;
+        }
+
+        .pulse-beacon {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--tactical-red);
+            animation: pulse-ring 1.8s infinite;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.4); opacity: 1; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-subtle);
+            min-height: calc(100vh - 105px);
+            padding: 16px 0;
+        }
+        .nav-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            padding: 12px 20px 4px 20px;
+        }
+        .side-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .side-link:hover, .side-link.active {
+            background-color: rgba(56, 189, 248, 0.08);
+            border-left-color: var(--cyber-blue);
+            color: var(--cyber-blue);
+        }
+        .side-link i {
+            width: 20px;
+            margin-right: 10px;
+            color: var(--text-muted);
+        }
+        .side-link:hover i, .side-link.active i {
+            color: var(--cyber-blue);
+        }
+
+        /* Metric Tiles */
+        .metric-tile {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 14px 18px;
+            position: relative;
+        }
+        .metric-tile::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 3px; height: 100%;
+            background-color: var(--cyber-blue);
+        }
+        .metric-tile.tile-red::before { background-color: var(--tactical-red); }
+        .metric-tile.tile-amber::before { background-color: var(--alert-amber); }
+        .metric-tile.tile-green::before { background-color: var(--radar-green); }
+
+        /* Report Cards */
+        .intel-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            transition: border-color 0.2s, transform 0.15s;
+        }
+        .intel-card:hover {
+            border-color: var(--border-focus);
+            transform: translateX(2px);
+        }
+
+        .tag-pill {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 2px 7px;
+            border-radius: 3px;
+        }
+        .tag-breaking { background: rgba(239, 68, 68, 0.25); color: #fca5a5; border: 1px solid var(--tactical-red); }
+        .tag-sigint { background: rgba(56, 189, 248, 0.2); color: #7dd3fc; border: 1px solid var(--cyber-blue); }
+        .tag-osint { background: rgba(245, 158, 11, 0.2); color: #fde68a; border: 1px solid var(--alert-amber); }
+
+        /* Tweets / OSINT stream */
+        .osint-card {
+            background-color: rgba(19, 25, 35, 0.85);
+            border: 1px solid var(--border-subtle);
+            border-radius: 4px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark navbar-custom sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand mono-text fw-bold text-uppercase tracking-wider" href="#">
-                <i class="fa-solid fa-satellite-dish text-danger me-2 fa-spin"></i> IDIGAS // Command Core Console
-            </a>
-            <div class="d-flex align-items-center">
-                <span class="badge bg-danger me-3 live-pulse"><i class="fa-solid fa-circle"></i> OSINT RECON ACTIVE</span>
-                <button class="btn btn-sm btn-outline-info text-white me-3" id="main-sync-matrix-btn" onclick="executeLiveReconSync()">
-                    <i class="fa-solid fa-arrows-rotate"></i> Sync Matrix
-                </button>
-                <div class="text-secondary small mono-text" id="live-clock">--:--:-- UTC</div>
-            </div>
-        </div>
-    </nav>
 
+    <!-- Header Navigation -->
+    <header class="top-navbar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-3">
+            <span class="mono fw-bold fs-6 text-white">
+                <i class="fa-solid fa-satellite-dish text-danger me-2"></i> IDIGAS // ADVANCED DEFENCE INTELLIGENCE
+            </span>
+            <span class="badge bg-dark border border-secondary text-info mono" style="font-size: 11px;">
+                COMMAND: TAC-HQ-01
+            </span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="text-secondary small mono" id="live-utc-clock">--:--:-- UTC</span>
+            <button class="btn btn-sm btn-outline-info mono" onclick="loadFeeds()">
+                <i class="fa-solid fa-arrows-rotate me-1"></i> RE-SYNC
+            </button>
+        </div>
+    </header>
+
+    <!-- DEFCON Threat Banner -->
+    <div class="defcon-bar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <span class="pulse-beacon"></span>
+            <strong class="text-white mono">DEFCON 2:</strong>
+            <span class="text-light small">ENHANCED THEATER AIR & BORDER SURVEILLANCE VECTORS FULLY ARMED</span>
+        </div>
+        <span class="badge border border-danger text-danger mono">CYBER ALERT: SEVERE</span>
+    </div>
+
+    <!-- Main Workspace -->
     <div class="container-fluid">
         <div class="row">
+
+            <!-- Sidebar -->
             <nav class="col-md-2 d-none d-md-block sidebar px-0">
-                <div class="nav-heading">Intelligence Hub</div>
-                <ul class="nav flex-column mb-3">
-                    <li class="nav-item"><a class="nav-link active" href="/"><i class="fa-solid fa-gauge-high"></i> Intelligence Room</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-map-location-dot"></i> World Map Grid</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#"><i class="fa-solid fa-shield-halved"></i> Threat Radar</a></li>
-                </ul>
+                <div class="nav-label">Command View</div>
+                <a class="side-link active" href="/"><i class="fa-solid fa-gauge-high"></i> Situation Matrix</a>
+                <a class="side-link" href="/mapintel/world-map/"><i class="fa-solid fa-earth-asia"></i> World Map Grid</a>
 
-                <div class="nav-heading">Technology Tracking</div>
-<ul class="nav flex-column mb-3">
-    <li class="nav-item"><a class="nav-link tech-link" href="#" data-domain="Cyber"><i class="fa-solid fa-shield-virus text-danger"></i> Cyber Warfare & Zero-Day</a></li>
-                    <li class="nav-item"><a class="nav-link tech-link" href="#" data-domain="AI"><i class="fa-solid fa-brain text-info"></i> AI & Robotics</a></li>
-                    <li class="nav-item"><a class="nav-link tech-link" href="#" data-domain="Hypersonic"><i class="fa-solid fa-bolt text-warning"></i> Hypersonic Vectors</a></li>
-                    <li class="nav-item"><a class="nav-link tech-link" href="#" data-domain="Space"><i class="fa-solid fa-user-astronaut text-success"></i> Space & Satellite</a></li>
-                </ul>
+                <div class="nav-label">Intelligence Domains</div>
+                <a class="side-link" href="#" onclick="filterCategory('DEFENCE')"><i class="fa-solid fa-jet-fighter"></i> Kinetic Defence</a>
+                <a class="side-link" href="#" onclick="filterCategory('CYBER')"><i class="fa-solid fa-shield-virus text-danger"></i> Cyber Incidents</a>
+                <a class="side-link" href="#" onclick="filterCategory('GEOPOLITICS')"><i class="fa-solid fa-landmark"></i> Geopolitics</a>
+                <a class="side-link" href="#" onclick="filterCategory('ALL')"><i class="fa-solid fa-layer-group"></i> All Intercepts</a>
 
-                <div class="nav-heading">Timeline Intelligence</div>
-                <div class="px-3 mb-4 d-flex gap-1 justify-content-between">
-                    <button class="btn btn-xs btn-outline-secondary py-1 px-2 mono-text" onclick="filterTimeline(1)" style="font-size:11px;">24 Hours</button>
-                    <button class="btn btn-xs btn-outline-secondary py-1 px-2 mono-text" onclick="filterTimeline(7)" style="font-size:11px;">7 Days</button>
+                <div class="nav-label">Data Extraction</div>
+                <div class="px-3 pt-2">
+                    <button class="btn btn-sm btn-outline-secondary w-100 text-start mono" onclick="downloadJSON()">
+                        <i class="fa-solid fa-file-code me-2"></i> Export JSON
+                    </button>
                 </div>
-
-                <div class="nav-heading">Operational Targets</div>
-                <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link target-link" href="#" data-country="China"><i class="fa-solid fa-flag"></i> China Theater</a></li>
-                    <li class="nav-item"><a class="nav-link target-link" href="#" data-country="Pakistan"><i class="fa-solid fa-crosshairs"></i> Pakistan Target</a></li>
-                    <li class="nav-item"><a class="nav-link target-link" href="#" data-country="India"><i class="fa-solid fa-shield"></i> India Command</a></li>
-                </ul>
             </nav>
 
-            <main class="col-md-10 ms-sm-auto px-md-4 py-4">
-                <div class="row g-3 mb-4">
-                    <div class="col-md-2 col-sm-6"><div class="intel-card text-center"><div class="text-muted small text-uppercase mb-1">Total Intel</div><div id="total-intel-count" class="fs-2 fw-bold mono-text text-white">0</div></div></div>
-                    <div class="col-md-2 col-sm-6"><div class="intel-card text-center card-blue"><div class="text-muted small text-uppercase mb-1">Defence News</div><div id="defence-count" class="fs-2 fw-bold mono-text text-info">0</div></div></div>
-                    <div class="col-md-2 col-sm-6"><div class="intel-card text-center card-amber"><div class="text-muted small text-uppercase mb-1">High Priority</div><div id="high-priority-count" class="fs-2 fw-bold mono-text text-warning">00</div></div></div>
-                    <div class="col-md-2 col-sm-6"><div class="intel-card text-center card-red"><div class="text-muted small text-uppercase mb-1">Critical Alerts</div><div id="critical-count" class="fs-2 fw-bold mono-text text-danger">00</div></div></div>
-                    <div class="col-md-2 col-sm-6"><div class="intel-card text-center card-green"><div class="text-muted small text-uppercase mb-1">Active Sources</div><div id="sources-count" class="fs-2 fw-bold mono-text text-success">0</div></div></div>
-                    <div class="col-md-2 col-sm-6"><div class="intel-card text-center"><div class="text-muted small text-uppercase mb-1">Nations Tracked</div><div id="countries-count" class="fs-2 fw-bold mono-text text-primary">0</div></div></div>
+            <!-- Center Panel -->
+            <main class="col-md-10 ms-sm-auto px-md-4 py-3">
+
+                <!-- Metric HUD -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-3">
+                        <div class="metric-tile">
+                            <div class="text-muted small mono text-uppercase">Total Intercepts</div>
+                            <div class="fs-4 fw-bold mono text-white" id="stat-total">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-tile tile-red">
+                            <div class="text-muted small mono text-uppercase">Critical Alerts</div>
+                            <div class="fs-4 fw-bold mono text-danger" id="stat-critical">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-tile tile-amber">
+                            <div class="text-muted small mono text-uppercase">Cyber Vectors</div>
+                            <div class="fs-4 fw-bold mono text-warning" id="stat-cyber">0</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="metric-tile tile-green">
+                            <div class="text-muted small mono text-uppercase">Sensor Sources</div>
+                            <div class="fs-4 fw-bold mono text-success">Verified Active</div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="row g-4 mb-4">
-                    <div class="col-lg-7"><div class="intel-card h-100"><h5>Geopolitical Threat & Volume Trends</h5><canvas id="threatTrendChart" height="230"></canvas></div></div>
-                    <div class="col-lg-5"><div class="intel-card h-100"><h5>Intelligence Share by Category</h5><canvas id="categoryPieChart" height="230"></canvas></div></div>
-                </div>
-
-                <div class="row g-4">
+                <!-- Feed Area -->
+                <div class="row g-3">
+                    
+                    <!-- Main Feed -->
                     <div class="col-lg-8">
-                        <div class="intel-card h-100">
-                            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom border-secondary pb-2">
-                                <h5 class="m-0 fw-bold text-white"><i class="fa-solid fa-terminal me-2 text-danger"></i>Tactical Document Recon Feeds</h5>
-                                <span class="badge bg-dark border border-secondary text-info mono-text small" id="theater-tracker-log">// THEATER: GLOBAL</span>
+                        <div class="metric-tile p-3" style="min-height: 600px;">
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom border-dark">
+                                <h6 class="fw-bold text-white mb-0 mono">
+                                    <i class="fa-solid fa-terminal me-2 text-danger"></i>REAL-TIME TACTICAL INTERCEPTS
+                                </h6>
+                                <span class="badge bg-dark border border-secondary text-info mono" id="active-domain-tag">
+                                    DOMAIN: GLOBAL
+                                </span>
                             </div>
-                            <div id="latest-intel-feed-container" style="max-height: 620px; overflow-y: auto; padding-right: 5px;"></div>
+                            <div id="intel-list-container" style="max-height: 620px; overflow-y: auto; padding-right: 5px;"></div>
                         </div>
                     </div>
 
+                    <!-- Right Column: OSINT & Spectrum -->
                     <div class="col-lg-4">
-                        <div class="intel-card mb-4">
-                            <h5 class="mb-3 fw-bold border-bottom border-secondary pb-2 text-info" style="font-size:15px;">
-                                <i class="fa-brands fa-x-twitter me-2"></i>Global Command OSINT Feeds
-                            </h5>
-                            <div class="twitter-feed-panel" id="military-tweets-container"></div>
+                        
+                        <!-- Military Feeds -->
+                        <div class="metric-tile p-3 mb-3">
+                            <h6 class="fw-bold text-info mb-3 mono" style="font-size: 13px;">
+                                <i class="fa-brands fa-x-twitter me-2"></i>STRATEGIC COMMAND STATEMENTS
+                            </h6>
+                            <div id="osint-container"></div>
                         </div>
 
-                        <div class="intel-card">
-                            <h5 class="mb-3 fw-bold border-bottom border-secondary pb-2" style="font-size:15px;"><i class="fa-solid fa-sliders me-2 text-success"></i>Dissemination Systems</h5>
-                            <div class="d-grid gap-2">
-                                <button onclick="alert('PDF Intelligence Digest generated!')" class="btn btn-tactical text-start py-2"><i class="fa-solid fa-file-pdf me-2 text-danger"></i> Compile Intelligence Brief (PDF)</button>
-                                <button onclick="alert('Air-Gapped Offline Package Created!')" class="btn btn-tactical text-start py-2"><i class="fa-solid fa-file-zipper me-2 text-info"></i> Pack Air-Gapped Folder (ZIP)</button>
-                            </div>
+                        <!-- Chart -->
+                        <div class="metric-tile p-3">
+                            <h6 class="fw-bold text-warning mb-2 mono" style="font-size: 13px;">
+                                <i class="fa-solid fa-chart-pie me-2"></i>THREAT SPECTRUM BREAKDOWN
+                            </h6>
+                            <canvas id="threatRadarChart" height="200"></canvas>
                         </div>
                     </div>
+
                 </div>
+
             </main>
         </div>
     </div>
 
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let allArticles = [];
-        let pieChartInstance = null;
+        let articleCache = [];
+        let radarChartInstance = null;
 
         setInterval(() => {
-            const clock = document.getElementById('live-clock');
+            const clock = document.getElementById('live-utc-clock');
             if (clock) clock.innerText = new Date().toUTCString().replace('GMT', 'UTC');
         }, 1000);
 
         document.addEventListener("DOMContentLoaded", () => {
-            loadDashboard();
-            loadTwitterPosts();
-            setupFilters();
+            loadFeeds();
+            renderOsint();
         });
 
-        function loadDashboard() {
+        function loadFeeds() {
             fetch('/api/intelligence-feed/')
                 .then(r => r.json())
                 .then(data => {
-                    allArticles = Array.isArray(data) ? data : (data.articles || data.results || []);
-                    updateMetrics(allArticles);
-                    renderFeed(allArticles);
-                    initCharts(allArticles);
+                    articleCache = Array.isArray(data) ? data : (data.articles || data.results || []);
+                    renderFeedItems(articleCache);
+                    updateCounters(articleCache);
+                    drawRadar(articleCache);
                 })
-                .catch(() => {
-                    const fallback = [
-                        { title: "DRDO tests Next-Gen Akash Air Defence Missile", summary: "High-altitude engagement envelope successfully validated.", category: "DEFENCE", priority: "High", country: "India" },
-                        { title: "Hypersonic test corridor activated in Northern sector", summary: "Telemetry confirmed glide vehicle maneuvering.", category: "DEFENCE", priority: "Critical", country: "China" },
-                        { title: "Border tactical radar array modernized", summary: "Airspace intrusion detection grid connected to unified command.", category: "GEOPOLITICS", priority: "Significant", country: "Pakistan" }
-                    ];
-                    updateMetrics(fallback);
-                    renderFeed(fallback);
-                    initCharts(fallback);
-                });
+                .catch(err => console.error("Telemetry fetch error:", err));
         }
 
-        function updateMetrics(list) {
-            document.getElementById('total-intel-count').innerText = list.length || 24;
-            const defCount = list.filter(a => ((a.category__name || a.category || '') + '').toUpperCase().includes('DEFENCE')).length;
-            const highCount = list.filter(a => ((a.priority || '') + '').toUpperCase().includes('HIGH')).length;
-            const critCount = list.filter(a => ((a.priority || '') + '').toUpperCase().includes('CRITICAL')).length;
+        function renderFeedItems(list) {
+            const container = document.getElementById('intel-list-container');
+            if (!container) return;
+            container.innerHTML = "";
 
-            document.getElementById('defence-count').innerText = defCount || 18;
-            document.getElementById('high-priority-count').innerText = highCount || 9;
-            document.getElementById('critical-count').innerText = critCount || 4;
-            document.getElementById('sources-count').innerText = 12;
-            document.getElementById('countries-count').innerText = 6;
-        }
+            if (list.length === 0) {
+                container.innerHTML = '<div class="p-4 text-center text-muted mono">NO ACTIVE INTERCEPTS FOUND.</div>';
+                return;
+            }
 
-        function renderFeed(list) {
-            const c = document.getElementById('latest-intel-feed-container');
-            if (!c) return;
-            c.innerHTML = "";
-            const types = ["BREAKING INTERCEPT", "OPERATIONAL LOG", "SIGINT VECTOR", "OSINT REPORT"];
+            const badges = [
+                { text: 'BREAKING INTERCEPT', cls: 'tag-breaking' },
+                { text: 'SIGINT VECTOR', cls: 'tag-sigint' },
+                { text: 'OSINT REPORT', cls: 'tag-osint' }
+            ];
 
-            list.slice(0, 15).forEach((item, i) => {
-                const priority = (item.priority || 'NORMAL').toUpperCase();
-                const bClass = (priority === 'CRITICAL' || priority === 'HIGH') ? 'badge-critical' : 'badge-normal';
-                const tag = types[i % types.length];
-                const cat = item.category__name || item.category || 'DEFENCE';
-                const summary = item.summary || item.content || 'Tactical telemetry logs recorded and processed.';
+            list.forEach((art, i) => {
+                const badge = badges[i % badges.length];
+                const priority = (art.priority || 'NORMAL').toUpperCase();
+                const category = art.category__name || (art.category && art.category.name ? art.category.name : art.category) || 'DEFENCE';
+                const dateText = art.published_at || 'Recent';
 
-                c.innerHTML += `
-                    <div class="advanced-news-card p-3">
+                container.innerHTML += `
+                    <div class="intel-card">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <div>
-                                <span class="badge bg-dark border border-secondary text-warning font-monospace me-2" style="font-size:10px;"><i class="fa-solid fa-fingerprint me-1"></i> ${tag}</span>
-                                <span class="badge ${bClass} small font-weight-bold">${priority}</span>
+                                <span class="tag-pill ${badge.cls} mono me-2">${badge.text}</span>
+                                <span class="badge ${priority === 'CRITICAL' ? 'bg-danger' : 'bg-primary'} mono" style="font-size:10px;">${priority}</span>
                             </div>
-                            <small class="text-muted mono-text" style="font-size:11px;">Just Now</small>
+                            <small class="text-secondary mono" style="font-size: 11px;">${dateText}</small>
                         </div>
-                        <h6 class="text-white fw-bold mb-2">${item.title}</h6>
-                        <p class="text-secondary small mb-2">${summary}</p>
-                        <div class="d-flex justify-content-between align-items-center border-top border-dark pt-2 mt-2">
-                            <span class="small text-info font-monospace" style="font-size:12px;"><i class="fa-solid fa-circle-nodes me-1"></i> ${cat}</span>
-                            <span class="small text-muted font-monospace" style="font-size:11px;"><i class="fa-solid fa-satellite me-1"></i> Verified Intercept</span>
+                        <h6 class="text-white fw-bold mb-1" style="font-size: 14px;">${art.title}</h6>
+                        <p class="text-secondary small mb-2" style="font-size: 12px; line-height: 1.4;">${art.summary || 'Tactical encrypted payload registered.'}</p>
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top border-dark">
+                            <span class="text-info mono" style="font-size: 11px;"><i class="fa-solid fa-shield-halved me-1"></i> ${category}</span>
+                            <span class="text-secondary mono" style="font-size: 11px;">VALIDATED SENSOR</span>
                         </div>
                     </div>`;
             });
         }
 
-        function loadTwitterPosts() {
-            const tc = document.getElementById('military-tweets-container');
-            const tweets = [
-                { leader: "General Anil Chauhan (Indian CDS)", handle: "@CDS_India", post: "Jointmanship & integration amongst the three services is paramount for future combat readiness. Evaluated operational capabilities in northern theater.", time: "2h ago" },
-                { leader: "Lloyd Austin (US SecDef)", handle: "@SecDef", post: "Met with NATO allies to reinforce collective deterrence framework. Strategic asset transfers and joint technology protocols confirmed.", time: "5h ago" },
-                { leader: "Mark Rutte (NATO SecGen)", handle: "@SecGenNATO", post: "Stronger integration along the eastern flank is crucial. Readiness vectors remain fully responsive.", time: "Yesterday" }
+        function updateCounters(list) {
+            document.getElementById('stat-total').innerText = list.length;
+            document.getElementById('stat-critical').innerText = list.filter(a => (a.priority || '').toUpperCase().includes('CRITICAL')).length;
+            document.getElementById('stat-cyber').innerText = list.filter(a => JSON.stringify(a).toUpperCase().includes('CYBER')).length;
+        }
+
+        function filterCategory(cat) {
+            document.getElementById('active-domain-tag').innerText = `DOMAIN: ${cat.toUpperCase()}`;
+            if (cat === 'ALL') {
+                renderFeedItems(articleCache);
+            } else {
+                renderFeedItems(articleCache.filter(a => JSON.stringify(a).toUpperCase().includes(cat)));
+            }
+        }
+
+        function renderOsint() {
+            const container = document.getElementById('osint-container');
+            if (!container) return;
+
+            const feeds = [
+                { author: "General Anil Chauhan", tag: "@CDS_India", text: "Theater commands synchronizing multi-domain telemetry for joint operational readiness." },
+                { author: "US Cyber Command", tag: "@CYBERCOM", text: "Proactive cyber defence operations neutralized zero-day vectors targeting perimeter gateways." },
+                { author: "NATO Headquarters", tag: "@NATO", text: "Air surveillance patrols strengthened across northeastern operational perimeters." }
             ];
-            tc.innerHTML = "";
-            tweets.forEach(t => {
-                tc.innerHTML += `
-                    <div class="twitter-card-log">
-                        <div class="d-flex justify-content-between align-items-center mb-1">
-                            <strong class="text-white small d-block"><i class="fa-solid fa-user-shield text-info me-1"></i> ${t.leader}</strong>
-                            <small class="text-muted font-monospace" style="font-size:10px;">${t.time}</small>
-                        </div>
-                        <span class="text-secondary d-block font-monospace mb-2" style="font-size:11px;">${t.handle}</span>
-                        <p class="text-light small mb-0" style="font-size:12px; font-style: italic;">"${t.post}"</p>
-                    </div>`;
-            });
+
+            container.innerHTML = feeds.map(f => `
+                <div class="osint-card">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-white small">${f.author}</strong>
+                        <span class="text-secondary mono" style="font-size: 10px;">${f.tag}</span>
+                    </div>
+                    <p class="text-secondary small mb-0" style="font-size: 11px; font-style: italic;">"${f.text}"</p>
+                </div>
+            `).join('');
         }
 
-        function setupFilters() {
-            document.querySelectorAll('.target-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const country = this.getAttribute('data-country');
-                    document.querySelectorAll('.target-link').forEach(l => l.classList.remove('active'));
-                    this.classList.add('active');
-                    document.getElementById('theater-tracker-log').innerText = `// THEATER: ${country.toUpperCase()}`;
-                    const filtered = allArticles.filter(a => JSON.stringify(a).toLowerCase().includes(country.toLowerCase()));
-                    renderFeed(filtered.length ? filtered : allArticles);
-                });
-            });
+        function drawRadar(list) {
+            const ctx = document.getElementById('threatRadarChart').getContext('2d');
+            if (radarChartInstance) radarChartInstance.destroy();
 
-            document.querySelectorAll('.tech-link').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const domain = this.getAttribute('data-domain');
-                    document.getElementById('theater-tracker-log').innerText = `// TECH DOMAIN: ${domain.toUpperCase()}`;
-                    const filtered = allArticles.filter(a => JSON.stringify(a).toLowerCase().includes(domain.toLowerCase()));
-                    renderFeed(filtered.length ? filtered : allArticles);
-                });
-            });
-        }
+            const defCount = list.filter(a => JSON.stringify(a).toUpperCase().includes('DEFENCE')).length;
+            const cyberCount = list.filter(a => JSON.stringify(a).toUpperCase().includes('CYBER')).length;
+            const geoCount = list.filter(a => JSON.stringify(a).toUpperCase().includes('GEOPOLITICS')).length;
+            const other = Math.max(0, list.length - (defCount + cyberCount + geoCount));
 
-        function filterTimeline(days) {
-            document.getElementById('theater-tracker-log').innerText = `// TIMELINE: LAST ${days} DAYS`;
-            renderFeed(allArticles);
-        }
-
-        function executeLiveReconSync() {
-            const btn = document.getElementById('main-sync-matrix-btn');
-            btn.innerHTML = `<i class="fa-solid fa-satellite fa-spin text-warning"></i> Syncing...`;
-            fetch('/collectors/fetch-now/').finally(() => {
-                setTimeout(() => {
-                    loadDashboard();
-                    btn.innerHTML = `<i class="fa-solid fa-arrows-rotate"></i> Sync Matrix`;
-                }, 1000);
-            });
-        }
-
-        function initCharts(list) {
-            const ctxD = document.getElementById('categoryPieChart').getContext('2d');
-            if (pieChartInstance) pieChartInstance.destroy();
-            pieChartInstance = new Chart(ctxD, {
+            radarChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['DEFENCE', 'GEOPOLITICS', 'CYBER TECH', 'SPACE & AI'],
-                    datasets: [{ data: [45, 25, 18, 12], backgroundColor: ['#58a6ff', '#d29922', '#da3633', '#30a14e'], borderWidth: 1, borderColor: '#30363d' }]
-                },
-                options: { responsive: true, plugins: { legend: { position: 'right', labels: { color: '#c9d1d9', font: { family: 'JetBrains Mono' } } } } }
-            });
-
-            const ctxL = document.getElementById('threatTrendChart').getContext('2d');
-            new Chart(ctxL, {
-                type: 'line',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [
-                        { label: 'Threat Multiplier', data: [65, 78, 72, 89, 95, 110, 130], borderColor: '#da3633', tension: 0.2, fill: false },
-                        { label: 'Raw Intel Volume', data: [40, 45, 55, 50, 68, 80, 85], borderColor: '#58a6ff', tension: 0.2, fill: false }
-                    ]
+                    labels: ['Kinetic Defence', 'Cyber Threat', 'Geopolitics', 'Strategic Logistics'],
+                    datasets: [{
+                        data: [defCount || 1, cyberCount || 1, geoCount || 1, other || 1],
+                        backgroundColor: ['#38bdf8', '#ef4444', '#f59e0b', '#10b981'],
+                        borderColor: '#0d1219'
+                    }]
                 },
                 options: {
                     responsive: true,
-                    scales: {
-                        x: { grid: { color: '#30363d' }, ticks: { color: '#c9d1d9', font: { family: 'JetBrains Mono' } } },
-                        y: { grid: { color: '#30363d' }, ticks: { color: '#c9d1d9', font: { family: 'JetBrains Mono' } } }
-                    },
-                    plugins: { legend: { labels: { color: '#c9d1d9', font: { family: 'JetBrains Mono' } } } }
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#94a3b8', font: { family: 'JetBrains Mono', size: 10 } } }
+                    }
                 }
             });
+        }
+
+        function downloadJSON() {
+            const blob = new Blob([JSON.stringify(articleCache, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `TACTICAL_FEED_${Date.now()}.json`;
+            a.click();
         }
     </script>
 </body>
 </html>
-
