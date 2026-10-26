@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IDIGAS Intelligence Reports</title>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:radial-gradient(circle at top,#12213a,#070b10 60%);
+    color:white;
+    font-family:Segoe UI,Arial,sans-serif;
+}
+
+.page{padding:25px}
+
+.top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+h1{
+    font-size:30px;
+    font-weight:900;
+    margin:0;
+}
+
+.sub{
+    color:#9aa4b2;
+    margin-top:6px;
+}
+
+.btn{
+    background:#1f6feb;
+    color:white;
+    padding:10px 15px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:bold;
+    display:inline-block;
+    border:0;
+    cursor:pointer;
+}
+
+.btn-green{background:#238636}
+.btn-red{background:#da3633}
+.btn-gray{background:#30363d}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(6,1fr);
+    gap:15px;
+    margin:20px 0;
+}
+
+.stat-card{
+    background:linear-gradient(180deg,#21262d,#161b22);
+    border:1px solid #30363d;
+    border-radius:14px;
+    padding:18px;
+}
+
+.stat-title{
+    color:#c9d1d9;
+    font-size:13px;
+}
+
+.num{
+    font-size:32px;
+    font-weight:900;
+    color:#58a6ff;
+    margin-top:5px;
+}
+
+.red{color:#ff4d5e}
+.yellow{color:#ffd33d}
+.green{color:#3fb950}
+
+.layout{
+    display:grid;
+    grid-template-columns:310px 1fr;
+    gap:18px;
+}
+
+.panel{
+    background:linear-gradient(180deg,#21262d,#161b22);
+    border:1px solid #30363d;
+    border-radius:14px;
+    padding:18px;
+}
+
+.panel-title{
+    font-size:18px;
+    font-weight:800;
+    margin-bottom:12px;
+}
+
+input,select{
+    width:100%;
+    background:#0d1117;
+    border:1px solid #30363d;
+    color:white;
+    padding:11px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+.report-list{
+    max-height:calc(100vh - 250px);
+    overflow:auto;
+    padding-right:8px;
+}
+
+.report-list::-webkit-scrollbar{width:6px}
+.report-list::-webkit-scrollbar-thumb{
+    background:#30363d;
+    border-radius:10px;
+}
+
+.card{
+    background:#0d1117;
+    border:1px solid #30363d;
+    border-left:5px solid #58a6ff;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+    cursor:pointer;
+    transition:.2s;
+}
+
+.card:hover{
+    border-color:#58a6ff;
+    transform:translateY(-2px);
+}
+
+.card.high-card{border-left-color:#da3633}
+.card.critical-card{border-left-color:#ff0033}
+
+.title-row{
+    display:flex;
+    gap:14px;
+}
+
+.news-img{
+    width:145px;
+    height:95px;
+    object-fit:cover;
+    border-radius:10px;
+    background:#161b22;
+    flex-shrink:0;
+}
+
+.card h3{
+    margin:0 0 8px 0;
+    font-size:18px;
+}
+
+.summary{
+    color:#c9d1d9;
+    line-height:1.5;
+    margin-bottom:10px;
+}
+
+.badge{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:8px;
+    background:#30363d;
+    font-size:12px;
+    font-weight:800;
+    margin:3px;
+}
+
+.high{background:#da3633;color:white}
+.critical{background:#ff0033;color:white}
+.medium{background:#d29922;color:black}
+.low{background:#238636;color:white}
+
+.ai-box{
+    background:rgba(88,166,255,.08);
+    border:1px solid rgba(88,166,255,.25);
+    padding:10px;
+    border-radius:10px;
+    margin-top:10px;
+    color:#dbeafe;
+}
+
+.actions{
+    margin-top:12px;
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.empty{
+    padding:25px;
+    text-align:center;
+    color:#9aa4b2;
+}
+
+.small{
+    color:#8b949e;
+    font-size:12px;
+}
+
+.filter-note{
+    background:#0d1117;
+    border:1px solid #30363d;
+    padding:10px;
+    border-radius:10px;
+    margin-top:12px;
+    color:#9aa4b2;
+    font-size:12px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="top">
+        <div>
+            <h1>IDIGAS Intelligence Reports</h1>
+            <div class="sub">
+                Latest intelligence report with country filter, source links, media and full detail view
+            </div>
+        </div>
+
+        <div>
+            <<button class="btn btn-green" onclick="generatePDF()">
+                Generate PDF
+            </button>
+            <a class="btn" href="/">
+                Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="stat-card">
+            <div class="stat-title">Total Articles</div>
+            <div class="num">{{ total }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Critical</div>
+            <div class="num red">{{ critical }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">High</div>
+            <div class="num yellow">{{ high }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Medium</div>
+            <div class="num">{{ medium }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Countries</div>
+            <div class="num green">{{ countries }}</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-title">Risk Index</div>
+            <div class="num red">{{ risk_index }}%</div>
+        </div>
+    </div>
+
+    <div class="layout">
+
+        <div class="panel">
+
+            <div class="panel-title">Report Filters</div>
+
+            <form method="GET" id="filterForm">
+
+                <input
+                    id="searchBox"
+                    type="text"
+                    placeholder="Search reports..."
+                >
+
+                <select name="country" id="countryFilter">
+                    <option value="">All Countries</option>
+
+                    {% for c in country_list %}
+                        <option value="{{ c }}" {% if selected_country == c %}selected{% endif %}>
+                            {{ c }}
+                        </option>
+                    {% endfor %}
+                </select>
+
+                <select name="priority" id="priorityFilter">
+                    <option value="">All Priority</option>
+
+                    <option value="CRITICAL" {% if selected_priority == "CRITICAL" %}selected{% endif %}>
+                        Critical
+                    </option>
+
+                    <option value="HIGH" {% if selected_priority == "HIGH" %}selected{% endif %}>
+                        High
+                    </option>
+
+                    <option value="MEDIUM" {% if selected_priority == "MEDIUM" %}selected{% endif %}>
+                        Medium
+                    </option>
+
+                    <option value="LOW" {% if selected_priority == "LOW" %}selected{% endif %}>
+                        Low
+                    </option>
+                </select>
+
+                <button class="btn" type="submit" style="width:100%;">
+                    Apply Server Filter
+                </button>
+
+            </form>
+
+            <br>
+
+            <button class="btn btn-gray" onclick="clearClientSearch()" style="width:100%;">
+                Clear Search
+            </button>
+
+            <br><br>
+
+            <a class="btn btn-red" href="/analytics/threat-radar/" style="width:100%;text-align:center;">
+                Open Threat Radar
+            </a>
+
+            <div class="filter-note">
+                Country dropdown database se aayega. Search box instant filter karega. Card click karne se detail page open hoga.
+            </div>
+
+        </div>
+
+        <div class="panel">
+
+            <div class="panel-title">
+                Live Intelligence Report Feed
+            </div>
+
+            <div class="report-list">
+
+                {% for a in articles %}
+                <div
+                    class="card {% if a.priority == 'CRITICAL' %}critical-card{% elif a.priority == 'HIGH' %}high-card{% endif %}"
+                    onclick="openDetail('{{ a.id }}')"
+                    data-title="{{ a.title|escape }}"
+                    data-summary="{{ a.summary|default:''|escape }}"
+                    data-country="{{ a.country|default:'Global' }}"
+                    data-priority="{{ a.priority }}"
+                >
+
+                    <div class="title-row">
+
+                        {% if a.image_url %}
+                            <img class="news-img" src="{{ a.image_url }}">
+                        {% else %}
+                            <div class="news-img"></div>
+                        {% endif %}
+
+                        <div>
+                            <h3>{{ a.title }}</h3>
+
+                            <div class="summary">
+                                {{ a.summary|default:"No summary available."|truncatechars:260 }}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {% if a.priority == "CRITICAL" %}
+                        <span class="badge critical">CRITICAL</span>
+                    {% elif a.priority == "HIGH" %}
+                        <span class="badge high">HIGH</span>
+                    {% elif a.priority == "MEDIUM" %}
+                        <span class="badge medium">MEDIUM</span>
+                    {% else %}
+                        <span class="badge low">{{ a.priority }}</span>
+                    {% endif %}
+
+                    <span class="badge">
+                        Country: {{ a.country|default:"Global" }}
+                    </span>
+
+                    <span class="badge">
+                        Source: {{ a.source|default:"Unknown" }}
+                    </span>
+
+                    <span class="badge">
+                        Published: {{ a.published_date|default:a.created_at }}
+                    </span>
+
+                    <div class="ai-box">
+                        <b>AI Report Note:</b>
+
+                        {% if a.priority == "CRITICAL" %}
+                            Critical intelligence. Immediate monitoring and source verification recommended.
+                        {% elif a.priority == "HIGH" %}
+                            High risk intelligence. Open detail for full briefing and original source.
+                        {% elif a.priority == "MEDIUM" %}
+                            Medium risk item. Include in routine monitoring.
+                        {% else %}
+                            Low risk report. Stored for trend analysis.
+                        {% endif %}
+                    </div>
+
+                    <div class="actions" onclick="event.stopPropagation();">
+
+                        <a class="btn" href="/reports/detail/{{ a.id }}/">
+                            Open Detail
+                        </a>
+
+                        {% if a.source_url %}
+                            <a class="btn btn-green" href="{{ a.source_url }}" target="_blank">
+                                Open Source
+                            </a>
+                        {% endif %}
+
+                        {% if a.video_url %}
+                            <a class="btn btn-red" href="{{ a.video_url }}" target="_blank">
+                                Open Video
+                            </a>
+                        {% endif %}
+
+                    </div>
+
+                </div>
+
+                {% empty %}
+
+                <div class="empty">
+                    No reports found. First click Sync Intelligence.
+                </div>
+
+                {% endfor %}
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function openDetail(id){
+    window.location.href = "/reports/detail/" + id + "/";
+}
+
+function applyClientSearch(){
+    let search = document.getElementById("searchBox").value.toLowerCase();
+
+    let cards = document.querySelectorAll(".card[data-title]");
+
+    cards.forEach(card => {
+        let title = card.dataset.title.toLowerCase();
+        let summary = card.dataset.summary.toLowerCase();
+
+        let searchOk = title.includes(search) || summary.includes(search);
+
+        card.style.display = searchOk ? "block" : "none";
+    });
+}
+function generatePDF(){
+    fetch("/reports/generate-pdf/")
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === "success"){
+            window.open(data.url, "_blank");
+        }else{
+            alert("PDF generate failed");
+        }
+    })
+    .catch(() => {
+        alert("PDF API error");
+    });
+}
+function clearClientSearch(){
+    document.getElementById("searchBox").value = "";
+    applyClientSearch();
+}
+
+document.getElementById("searchBox").addEventListener("keyup", applyClientSearch);
+
+document.getElementById("countryFilter").addEventListener("change", function(){
+    document.getElementById("filterForm").submit();
+});
+
+document.getElementById("priorityFilter").addEventListener("change", function(){
+    document.getElementById("filterForm").submit();
+});
+function generatePDF(){
+    fetch("/reports/generate-pdf/")
+    .then(r => r.json())
+    .then(data => {
+        if(data.status === "success"){
+            window.open(data.url, "_blank");
+        }else{
+            alert("PDF generate failed");
+        }
+    })
+    .catch(() => {
+        alert("PDF API error");
+    });
+}
+</script>
+
+</body>
+</html>

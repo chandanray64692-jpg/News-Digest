@@ -1,0 +1,1727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>BISON Intelligence News Aggregator</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --bg: #070a10;
+            --bg-soft: #0b111c;
+            --surface: rgba(15, 23, 36, 0.86);
+            --surface-strong: rgba(19, 30, 48, 0.96);
+            --surface-muted: rgba(8, 13, 21, 0.92);
+            --line: rgba(148, 163, 184, 0.18);
+            --line-strong: rgba(88, 166, 255, 0.35);
+            --blue: #58a6ff;
+            --blue-strong: #1f6feb;
+            --green: #3fb950;
+            --red: #ff4d5e;
+            --yellow: #ffd33d;
+            --text: #f8fbff;
+            --text-soft: #c7d2df;
+            --muted: #8896a8;
+            --shadow: 0 18px 60px rgba(0, 0, 0, 0.38);
+            --radius: 16px;
+        }
+
+        html, body {
+            margin: 0;
+            min-height: 100%;
+            background: var(--bg);
+            color: var(--text);
+            font-family: "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 16% 8%, rgba(88, 166, 255, 0.22), transparent 34%),
+                radial-gradient(circle at 86% 0%, rgba(63, 185, 80, 0.12), transparent 30%),
+                linear-gradient(135deg, #05070b 0%, #08111e 48%, #05070b 100%);
+        }
+
+        a { color: inherit; }
+
+        .dashboard-shell {
+            height: 100vh;
+            padding: 18px;
+            display: grid;
+            grid-template-rows: auto auto minmax(0, 1fr);
+            gap: 14px;
+        }
+
+        .glass {
+            background: linear-gradient(180deg, rgba(18, 27, 43, 0.9), rgba(9, 14, 23, 0.92));
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(16px);
+        }
+
+        .topbar {
+            min-height: 76px;
+            padding: 14px 16px;
+            display: grid;
+            grid-template-columns: auto minmax(240px, 1fr) auto;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 210px;
+        }
+
+        .brand-mark {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            display: grid;
+            place-items: center;
+            color: #fff;
+            background: linear-gradient(135deg, var(--blue-strong), var(--blue));
+            box-shadow: 0 14px 34px rgba(31, 111, 235, 0.32);
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .logo {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            line-height: 1;
+        }
+
+        .logo span { color: var(--blue); }
+
+        .sublogo {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+        }
+
+        .nav-pills-custom {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 1px;
+        }
+
+        .nav-btn {
+            min-height: 40px;
+            padding: 0 13px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.035);
+            color: var(--text-soft);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            transition: 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            color: var(--text);
+            border-color: var(--line-strong);
+            background: rgba(88, 166, 255, 0.12);
+            transform: translateY(-1px);
+        }
+
+        .nav-btn.active {
+            color: #fff;
+            background: linear-gradient(135deg, var(--blue-strong), var(--blue));
+            border-color: transparent;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .ai-status {
+            min-height: 40px;
+            padding: 0 13px;
+            border-radius: 999px;
+            border: 1px solid rgba(63, 185, 80, 0.32);
+            color: #70e083;
+            background: rgba(63, 185, 80, 0.12);
+            font-size: 12px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .ai-status i { animation: pulse 1.8s ease-in-out infinite; }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.45; transform: scale(0.92); }
+        }
+
+        .clock-chip {
+            min-height: 40px;
+            padding: 0 12px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--text-soft);
+            font-weight: 800;
+            font-size: 13px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .hero-strip {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) repeat(6, minmax(104px, 0.78fr));
+            gap: 10px;
+        }
+
+        .briefing-card {
+            padding: 12px 14px;
+            min-height: 86px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: min-height 0.25s ease, padding 0.25s ease, transform 0.2s ease;
+        }
+
+        .briefing-card::after {
+            content: "";
+            position: absolute;
+            inset: auto -80px -90px auto;
+            width: 190px;
+            height: 190px;
+            border-radius: 50%;
+            background: rgba(88, 166, 255, 0.12);
+            pointer-events: none;
+        }
+
+        .briefing-kicker {
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.7px;
+        }
+
+        .briefing-title {
+            margin: 4px 0 3px;
+            font-size: 17px;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+            line-height: 1.15;
+        }
+
+        .briefing-text {
+            margin: 0;
+            max-width: 520px;
+            color: var(--text-soft);
+            font-size: 11px;
+            line-height: 1.38;
+        }
+
+        .briefing-card.is-collapsed {
+            min-height: 54px;
+            padding: 10px 12px;
+        }
+
+        .briefing-card.is-collapsed .briefing-title {
+            margin-bottom: 0;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .briefing-card.is-collapsed .briefing-text {
+            display: none;
+        }
+
+        .stat-card {
+            min-height: 86px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: min-height 0.25s ease, padding 0.25s ease, transform 0.2s ease;
+        }
+
+        .briefing-card:hover,
+        .stat-card:hover {
+            transform: translateY(-1px);
+            border-color: rgba(88, 166, 255, 0.34);
+        }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            width: 82px;
+            height: 82px;
+            right: -32px;
+            top: -32px;
+            border-radius: 50%;
+            background: rgba(88, 166, 255, 0.11);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.55px;
+        }
+
+        .stat-value {
+            margin-top: 6px;
+            font-size: clamp(22px, 1.8vw, 30px);
+            font-weight: 950;
+            line-height: 1;
+        }
+
+        .stat-card.is-collapsed {
+            min-height: 54px;
+            padding: 10px 12px;
+            justify-content: center;
+            gap: 3px;
+        }
+
+        .stat-card.is-collapsed .stat-label {
+            font-size: 10px;
+        }
+
+        .stat-card.is-collapsed .stat-value {
+            margin-top: 0;
+            font-size: 18px;
+        }
+
+        .blue { color: var(--blue); }
+        .green { color: var(--green); }
+        .red { color: var(--red); }
+        .yellow { color: var(--yellow); }
+
+        .workspace-grid {
+            min-height: 0;
+            display: grid;
+            grid-template-columns: minmax(260px, 0.9fr) minmax(420px, 1.65fr) minmax(290px, 1fr);
+            gap: 14px;
+        }
+
+        .stack {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel {
+            padding: 15px;
+            min-height: 0;
+        }
+
+        .collapsible-card {
+            transition: min-height 0.25s ease, padding 0.25s ease, border-color 0.2s ease;
+        }
+
+        .collapsible-card .card-body-collapsible {
+            overflow: hidden;
+            transition: max-height 0.25s ease, opacity 0.2s ease, margin 0.2s ease;
+        }
+
+        .collapsible-card.is-collapsed {
+            padding: 10px 13px;
+        }
+
+        .collapsible-card.is-collapsed .card-body-collapsible {
+            max-height: 0 !important;
+            opacity: 0;
+            margin: 0 !important;
+            pointer-events: none;
+        }
+
+        .panel-title {
+            margin: 0 0 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 900;
+        }
+
+        .collapsible-card .panel-title {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .card-toggle {
+            width: 26px;
+            height: 26px;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            color: var(--text-soft);
+            background: rgba(255, 255, 255, 0.04);
+            display: inline-grid;
+            place-items: center;
+            transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+        }
+
+        .card-toggle i {
+            color: inherit;
+            font-size: 11px;
+            transition: transform 0.2s ease;
+        }
+
+        .collapsible-card.is-collapsed .card-toggle i {
+            transform: rotate(-90deg);
+        }
+
+        .card-toggle:hover {
+            color: #fff;
+            background: rgba(88, 166, 255, 0.16);
+        }
+
+        .panel-title span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title i { color: var(--blue); }
+
+        .hint {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .form-control,
+        .form-select {
+            min-height: 43px;
+            color: var(--text);
+            background: var(--surface-muted);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            font-size: 13px;
+            box-shadow: none;
+        }
+
+        .form-control::placeholder { color: #64748b; }
+
+        .form-control:focus,
+        .form-select:focus {
+            color: var(--text);
+            background: #090f19;
+            border-color: var(--blue);
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.16);
+        }
+
+        .form-select option {
+            color: var(--text);
+            background: #090f19;
+        }
+
+        textarea.form-control {
+            min-height: 92px;
+            resize: vertical;
+        }
+
+        .btn-primary-ai,
+        .action-btn {
+            min-height: 43px;
+            width: 100%;
+            border: 0;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--blue-strong), var(--blue));
+            font-weight: 850;
+            font-size: 13px;
+            text-decoration: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+        }
+
+        .btn-primary-ai:hover:not(:disabled),
+        .action-btn:hover:not(:disabled) {
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 12px 30px rgba(31, 111, 235, 0.28);
+        }
+
+        .btn-primary-ai:disabled,
+        .action-btn:disabled {
+            opacity: 0.58;
+            cursor: not-allowed;
+        }
+
+        .sync-btn { background: linear-gradient(135deg, #238636, var(--green)); }
+        .twitter-btn { background: linear-gradient(135deg, #1d9bf0, var(--blue)); }
+
+        .sync-status {
+            min-height: 18px;
+            margin-top: 9px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .sync-status.success { color: var(--green); }
+        .sync-status.error { color: var(--red); }
+        .sync-status.loading { color: var(--yellow); }
+
+        .breaking-alert {
+            padding: 11px 13px;
+            border-radius: 13px;
+            border: 1px solid rgba(255, 77, 94, 0.34);
+            color: #ffb1b8;
+            background: rgba(255, 77, 94, 0.1);
+            font-size: 12px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            cursor: pointer;
+            transition: padding 0.2s ease, opacity 0.2s ease;
+        }
+
+        .breaking-alert.is-collapsed {
+            padding: 9px 11px;
+        }
+
+        .breaking-alert.is-collapsed span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .risk-meter {
+            height: 13px;
+            padding: 2px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: #060a11;
+            overflow: hidden;
+        }
+
+        .risk-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--green), var(--yellow), var(--red));
+            transition: width 0.45s ease;
+        }
+
+        .feed-panel {
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feed-panel .card-body-collapsible {
+            min-height: 0;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .feed-panel.is-collapsed {
+            min-height: auto;
+            flex: 0 0 auto;
+        }
+
+        .feed-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .news-feed {
+            min-height: 0;
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 6px;
+        }
+
+        .news-feed::-webkit-scrollbar,
+        .ai-answer-box::-webkit-scrollbar { width: 6px; }
+        .news-feed::-webkit-scrollbar-thumb,
+        .ai-answer-box::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.28);
+            border-radius: 999px;
+        }
+
+        .feed-card {
+            padding: 10px 11px;
+            margin-bottom: 8px;
+            border-radius: 13px;
+            border: 1px solid var(--line);
+            border-left: 3px solid var(--blue);
+            background: linear-gradient(180deg, rgba(10, 17, 29, 0.96), rgba(7, 12, 20, 0.96));
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .feed-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(88, 166, 255, 0.42);
+            box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+        }
+
+        .feed-card.priority-critical { border-left-color: #ff0033; }
+        .feed-card.priority-high { border-left-color: var(--red); }
+        .feed-card.priority-medium { border-left-color: var(--yellow); }
+        .feed-card.priority-low { border-left-color: var(--green); }
+
+        .feed-content {
+            display: grid;
+            grid-template-columns: 92px minmax(0, 1fr);
+            gap: 10px;
+        }
+
+        .feed-image {
+            width: 92px;
+            height: 62px;
+            border-radius: 10px;
+            object-fit: cover;
+            background: #111827;
+        }
+
+        .feed-image.placeholder {
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+            font-size: 22px;
+        }
+
+        .feed-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+
+        .feed-title {
+            margin: 0;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 850;
+            line-height: 1.28;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .feed-summary {
+            margin: 0;
+            color: var(--text-soft);
+            font-size: 11.5px;
+            line-height: 1.38;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .feed-meta,
+        .feed-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 7px;
+        }
+
+        .badge-custom {
+            padding: 4px 7px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.35px;
+            white-space: nowrap;
+        }
+
+        .badge-priority-critical { background: #ff0033; color: #fff; }
+        .badge-priority-high { background: var(--red); color: #fff; }
+        .badge-priority-medium { background: var(--yellow); color: #111827; }
+        .badge-priority-low { background: var(--green); color: #04100a; }
+        .badge-source { background: rgba(88, 166, 255, 0.16); color: #9dccff; }
+        .badge-country { background: rgba(148, 163, 184, 0.15); color: #d2d9e3; }
+        .badge-threat { background: rgba(255, 77, 94, 0.14); color: #ff9ca5; }
+
+        .action-link {
+            color: #9dccff;
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .action-link:hover { color: #fff; text-decoration: underline; }
+
+        .ai-answer-box {
+            min-height: 150px;
+            max-height: 245px;
+            overflow-y: auto;
+            padding: 13px;
+            border: 1px solid var(--line);
+            border-radius: 13px;
+            background: var(--surface-muted);
+            color: #dbeafe;
+            font-size: 12.5px;
+            line-height: 1.58;
+        }
+
+        .ai-answer-box.loading {
+            display: grid;
+            place-items: center;
+            color: var(--muted);
+        }
+
+        .ai-answer-box b,
+        .ai-answer-box strong { color: #9dccff; }
+
+        .placeholder-text {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.24);
+            border-top-color: #fff;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .empty-state {
+            height: 100%;
+            min-height: 260px;
+            display: grid;
+            place-content: center;
+            justify-items: center;
+            gap: 12px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            opacity: 0.55;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .quick-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .text-muted-custom {
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 1320px) {
+            .hero-strip {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+
+            .briefing-card { grid-column: 1 / -1; }
+
+            .workspace-grid {
+                grid-template-columns: 280px minmax(420px, 1fr);
+            }
+
+            .right-rail {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 980px) {
+            body { overflow: auto; }
+
+            .dashboard-shell {
+                height: auto;
+                min-height: 100vh;
+                grid-template-rows: auto;
+                padding: 12px;
+            }
+
+            .topbar {
+                grid-template-columns: 1fr;
+            }
+
+            .top-actions { justify-content: flex-start; flex-wrap: wrap; }
+
+            .hero-strip,
+            .workspace-grid,
+            .right-rail {
+                grid-template-columns: 1fr;
+            }
+
+            .feed-panel:not(.is-collapsed),
+            .feed-panel:not(.is-collapsed) .news-feed {
+                min-height: 560px;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .feed-content {
+                grid-template-columns: 1fr;
+            }
+
+            .feed-image {
+                width: 100%;
+                height: 168px;
+            }
+
+            .hero-strip {
+                gap: 10px;
+            }
+
+            .stat-card,
+            .briefing-card,
+            .panel {
+                border-radius: 14px;
+            }
+        }
+
+        /* Advanced AI command-center layout */
+        :root {
+            --radius: 22px;
+            --cyan: #63e6ff;
+            --violet: #8b7cff;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.2;
+            background-image:
+                linear-gradient(rgba(99, 230, 255, 0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 230, 255, 0.04) 1px, transparent 1px);
+            background-size: 46px 46px;
+            mask-image: linear-gradient(to bottom, #000, transparent 78%);
+        }
+
+        .dashboard-shell {
+            padding: 14px;
+            gap: 12px;
+        }
+
+        .glass {
+            background: linear-gradient(145deg, rgba(20, 31, 50, 0.91), rgba(7, 13, 23, 0.96));
+            border-color: rgba(125, 164, 220, 0.2);
+            box-shadow: 0 18px 50px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        }
+
+        .topbar {
+            min-height: 68px;
+            padding: 11px 14px;
+            border-radius: 24px;
+        }
+
+        .nav-pills-custom {
+            justify-content: flex-start;
+        }
+
+        .nav-btn,
+        .ai-status,
+        .clock-chip {
+            border-radius: 13px;
+        }
+
+        .hero-strip {
+            display: block;
+            min-width: 0;
+        }
+
+        .briefing-card {
+            min-height: 58px;
+            padding: 0;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+            cursor: default;
+        }
+
+        .briefing-card::after {
+            display: none;
+        }
+
+        .briefing-label {
+            align-self: stretch;
+            flex: 0 0 auto;
+            min-width: 190px;
+            padding: 0 18px;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            color: #fff;
+            background: linear-gradient(135deg, #ff365c, #a71d46);
+            border-right: 1px solid rgba(255, 255, 255, 0.15);
+            font-size: 11px;
+            font-weight: 950;
+            letter-spacing: 0.7px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            z-index: 2;
+        }
+
+        .briefing-label i {
+            color: #fff;
+            filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.55));
+        }
+
+        .briefing-track {
+            min-width: 0;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .briefing-runner {
+            width: max-content;
+            padding-left: 0;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            white-space: nowrap;
+            animation: brief-left-to-right 15s linear infinite;
+            will-change: transform;
+        }
+
+        .briefing-card:hover .briefing-runner {
+            animation-play-state: paused;
+        }
+
+        .briefing-title {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1;
+        }
+
+        .briefing-divider {
+            color: var(--cyan);
+            font-size: 9px;
+        }
+
+        .briefing-text {
+            margin: 0;
+            max-width: none;
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        @keyframes brief-left-to-right {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(calc(100vw - 190px)); }
+        }
+
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(6, minmax(0, 1fr));
+            gap: 9px;
+            margin-top: 9px;
+        }
+
+        .stat-card,
+        .stat-card.is-collapsed {
+            min-height: 68px;
+            padding: 10px 12px;
+            border-radius: 17px;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        .stat-card.is-collapsed .stat-value {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .workspace-grid {
+            grid-template-columns: 350px minmax(0, 1fr);
+            gap: 12px;
+        }
+
+        .feed-panel {
+            grid-column: 2;
+            padding: 13px;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feed-panel::before,
+        .ai-console::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto auto 0;
+            width: 58%;
+            height: 1px;
+            background: linear-gradient(90deg, var(--cyan), transparent);
+        }
+
+        .flash-heading {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flash-signal {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--red);
+            box-shadow: 0 0 0 5px rgba(255, 77, 94, 0.11), 0 0 18px rgba(255, 77, 94, 0.8);
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+
+        .flash-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 950;
+        }
+
+        .flash-title small {
+            display: block;
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 9px;
+            font-weight: 800;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+        }
+
+        .right-rail {
+            grid-column: 1;
+            grid-row: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding-right: 3px;
+            text-align: left;
+        }
+
+        .right-rail .panel {
+            padding: 12px;
+            border-radius: 18px;
+            flex: 0 0 auto;
+        }
+
+        .right-rail .panel-title,
+        .right-rail .panel-title span,
+        .right-rail .card-body-collapsible,
+        .right-rail .sync-status,
+        .right-rail .text-muted-custom {
+            text-align: left;
+            justify-content: flex-start;
+        }
+
+        .right-rail .panel-title {
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .right-rail .action-btn,
+        .right-rail .btn-primary-ai {
+            justify-content: flex-start;
+            text-align: left;
+            padding-left: 14px;
+        }
+
+        .quick-grid {
+            grid-template-columns: 1fr;
+            gap: 7px;
+        }
+
+        .ai-console {
+            position: relative;
+            border-color: rgba(99, 230, 255, 0.32);
+            background:
+                radial-gradient(circle at 100% 0, rgba(139, 124, 255, 0.13), transparent 35%),
+                linear-gradient(160deg, rgba(17, 30, 50, 0.98), rgba(5, 11, 20, 0.98));
+        }
+
+        .ai-console .panel-title span::after {
+            content: "LIVE";
+            padding: 3px 6px;
+            border-radius: 999px;
+            color: #84f3ff;
+            background: rgba(99, 230, 255, 0.1);
+            border: 1px solid rgba(99, 230, 255, 0.2);
+            font-size: 8px;
+            letter-spacing: 0.7px;
+        }
+
+        .ai-answer-box {
+            min-height: 128px;
+            border-radius: 13px;
+            border-color: rgba(99, 230, 255, 0.18);
+            background: rgba(3, 9, 17, 0.82);
+            text-align: left;
+        }
+
+        @media (max-width: 980px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .feed-panel {
+                grid-column: 1;
+            }
+
+            .right-rail {
+                grid-column: 1;
+                grid-row: auto;
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                overflow: visible;
+            }
+
+            .ai-console { grid-column: 1 / -1; }
+            .stats-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        }
+
+        @media (max-width: 620px) {
+            .briefing-card {
+                display: block;
+            }
+
+            .briefing-label {
+                min-height: 38px;
+                width: 100%;
+            }
+
+            .briefing-track {
+                min-height: 42px;
+                display: flex;
+                align-items: center;
+            }
+
+            @keyframes brief-left-to-right {
+                from { transform: translateX(-100%); }
+                to { transform: translateX(100vw); }
+            }
+
+            .stats-strip,
+            .right-rail {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .ai-console { grid-column: 1 / -1; }
+        }
+    </style>
+</head>
+
+<body>
+<div class="dashboard-shell">
+    <header class="topbar glass">
+        <div class="brand">
+            <div class="brand-mark">ID</div>
+            <div>
+                <h1 class="logo">54<span>BISON</span></h1>
+                <div class="sublogo">News Digest</div>
+            </div>
+        </div>
+
+        <nav class="nav-pills-custom" aria-label="Primary navigation">
+            <a href="/" class="nav-btn active"><i class="fa-solid fa-gauge-high"></i>Dashboard</a>
+            <a href="/mapintel/world-map/" class="nav-btn"><i class="fa-solid fa-earth-asia"></i>World Map</a>
+            <a href="/analytics/threat-radar/" class="nav-btn"><i class="fa-solid fa-crosshairs"></i>Threat Radar</a>
+            <a href="/reports/" class="nav-btn"><i class="fa-solid fa-folder-open"></i>Reports</a>
+            <a href="/collectors/" class="nav-btn"><i class="fa-solid fa-satellite-dish"></i>Collectors</a>
+        </nav>
+
+        <div class="top-actions">
+            <div class="ai-status"><i class="fa-solid fa-circle"></i>AI Systems Online</div>
+            <div class="clock-chip"><i class="fa-regular fa-clock"></i><span id="clock">--:--:--</span></div>
+        </div>
+    </header>
+
+    <section class="hero-strip">
+        <div class="briefing-card glass">
+            <div class="briefing-label"><i class="fa-solid fa-bolt"></i>Live Operations Brief</div>
+            <div class="briefing-track">
+                <div class="briefing-runner">
+                    <h2 class="briefing-title">Global intelligence, risk and AI prediction in one view.</h2>
+                    <i class="fa-solid fa-diamond briefing-divider"></i>
+                    <p class="briefing-text">Monitor real-time feeds, filter by country and priority, trigger collectors, and generate prediction or SITREP output without leaving the dashboard.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="stats-strip">
+        <div class="stat-card glass compactable-card is-collapsed" data-toggle-card>
+            <div class="stat-label">Total Intel</div>
+            <div id="totalNews" class="stat-value blue">0</div>
+        </div>
+        <div class="stat-card glass compactable-card is-collapsed" data-toggle-card>
+            <div class="stat-label">Countries</div>
+            <div id="countryCount" class="stat-value green">0</div>
+        </div>
+        <div class="stat-card glass compactable-card is-collapsed" data-toggle-card>
+            <div class="stat-label">Sources</div>
+            <div id="sourceCount" class="stat-value blue">0</div>
+        </div>
+        <div class="stat-card glass compactable-card is-collapsed" data-toggle-card>
+            <div class="stat-label">Critical</div>
+            <div id="criticalCount" class="stat-value red">0</div>
+        </div>
+        <div class="stat-card glass compactable-card is-collapsed" data-toggle-card>
+            <div class="stat-label">High</div>
+            <div id="highCount" class="stat-value yellow">0</div>
+        </div>
+        <div class="stat-card glass compactable-card is-collapsed" data-toggle-card>
+            <div class="stat-label">Risk Index</div>
+            <div id="riskValue" class="stat-value red">0%</div>
+        </div>
+        </div>
+    </section>
+
+    <main class="workspace-grid">
+        <section class="panel glass feed-panel collapsible-card">
+            <div class="feed-toolbar" data-card-toggle>
+                <div class="flash-heading">
+                    <span class="flash-signal"></span>
+                    <h2 class="flash-title">Flash News <small>Live intelligence stream</small></h2>
+                </div>
+                <span class="hint"><i class="fa-solid fa-sync-alt"></i> Auto-refresh 30s</span>
+                <button type="button" class="card-toggle" aria-label="Toggle Live Feed"><i class="fa-solid fa-chevron-down"></i></button>
+            </div>
+
+            <div class="card-body-collapsible">
+                <div id="feedContainer" class="news-feed">
+                    <div class="empty-state">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <p>Loading intelligence feed...</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <aside class="stack right-rail">
+            <section class="panel glass collapsible-card is-collapsed">
+                <div class="panel-title" data-card-toggle>
+                    <span><i class="fa-solid fa-satellite-dish"></i>Collectors</span>
+                    <button type="button" class="card-toggle" aria-label="Toggle Collectors"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="card-body-collapsible">
+                    <button id="syncBtn" onclick="syncNews()" class="action-btn sync-btn mb-2">
+                        <i class="fa-solid fa-rotate"></i>Sync News
+                    </button>
+                    <button id="twitterBtn" onclick="syncTwitter()" class="action-btn twitter-btn">
+                        <i class="fa-brands fa-x-twitter"></i>Fetch X OSINT
+                    </button>
+                    <div id="syncStatus" class="sync-status">Ready for collector sync</div>
+                </div>
+            </section>
+
+            <section class="panel glass collapsible-card is-collapsed">
+                <div class="panel-title" data-card-toggle>
+                    <span><i class="fa-solid fa-filter"></i>AI Filters</span>
+                    <button type="button" class="card-toggle" aria-label="Toggle AI Filters"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="card-body-collapsible">
+                    <input type="text" id="searchBox" class="form-control mb-2" placeholder="Search intelligence...">
+                    <select id="countryFilter" class="form-select mb-2">
+                        <option value="">All Countries</option>
+                    </select>
+                    <select id="priorityFilter" class="form-select mb-2">
+                        <option value="">All Priorities</option>
+                        <option value="CRITICAL">Critical</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+                    <button onclick="applyFilters()" class="btn-primary-ai">
+                        <i class="fa-solid fa-magnifying-glass"></i>Apply Filters
+                    </button>
+                </div>
+            </section>
+
+            <section class="panel glass collapsible-card is-collapsed">
+                <div class="panel-title" data-card-toggle>
+                    <span><i class="fa-solid fa-gauge"></i>Threat Risk Level</span>
+                    <button type="button" class="card-toggle" aria-label="Toggle Threat Risk"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="card-body-collapsible">
+                    <div class="risk-meter mb-2">
+                        <div id="riskFill" class="risk-fill"></div>
+                    </div>
+                    <div class="text-muted-custom">Calculated from priority and threat scores</div>
+                </div>
+            </section>
+
+            <section class="panel glass collapsible-card">
+                <div class="panel-title" data-card-toggle>
+                    <span><i class="fa-solid fa-bolt"></i>Quick Actions</span>
+                    <button type="button" class="card-toggle" aria-label="Toggle Quick Actions"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="card-body-collapsible">
+                    <div class="quick-grid">
+                        <a class="btn-primary-ai" href="/reports/"><i class="fa-solid fa-folder-open"></i>Open Reports</a>
+                        <a class="btn-primary-ai" href="/analytics/threat-radar/"><i class="fa-solid fa-crosshairs"></i>Threat Radar</a>
+                        <a class="btn-primary-ai" href="/reports/generate-pdf/" target="_blank" rel="noopener"><i class="fa-solid fa-file-pdf"></i>Generate PDF</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="panel glass flex-grow-1 collapsible-card ai-console">
+                <div class="panel-title" data-card-toggle>
+                    <span><i class="fa-solid fa-robot"></i>AI Prediction Assistant</span>
+                    <button type="button" class="card-toggle" aria-label="Toggle AI Assistant"><i class="fa-solid fa-chevron-down"></i></button>
+                </div>
+                <div class="card-body-collapsible">
+                    <select id="aiCountry" class="form-select mb-2">
+                        <option value="">Select Country</option>
+                    </select>
+
+                    <textarea id="aiQuestion" class="form-control mb-2" rows="3" placeholder="Ask a prediction question..."></textarea>
+
+                    <button id="predictBtn" onclick="askAIAssistant()" class="btn-primary-ai mb-2">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>Predict Intelligence
+                    </button>
+
+                    <button id="sitrepBtn" onclick="generateSITREP()" class="btn-primary-ai mb-3">
+                        <i class="fa-solid fa-clipboard-list"></i>Generate Daily SITREP
+                    </button>
+
+                    <div id="aiAnswer" class="ai-answer-box">
+                        <span class="placeholder-text">Select a country and ask a prediction question.</span>
+                    </div>
+                </div>
+            </section>
+        </aside>
+    </main>
+</div>
+
+<script>
+    let allArticles = [];
+    let isLoading = false;
+
+    function safeText(value, fallback = 'N/A') {
+        return value && String(value).trim() ? String(value).trim() : fallback;
+    }
+
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function setButtonLoading(buttonId, loading, originalHtml = null) {
+        const btn = document.getElementById(buttonId);
+        if (!btn) return;
+
+        if (loading) {
+            btn.disabled = true;
+            btn.dataset.originalHtml = btn.innerHTML;
+            btn.innerHTML = '<div class="spinner"></div>';
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml || btn.dataset.originalHtml || btn.innerHTML;
+        }
+    }
+
+    function updateSyncStatus(message, type = '') {
+        const status = document.getElementById('syncStatus');
+        if (!status) return;
+        status.textContent = message;
+        status.className = 'sync-status ' + type;
+    }
+
+    function updateClock() {
+        const clock = document.getElementById('clock');
+        if (!clock) return;
+        clock.textContent = new Date().toLocaleTimeString('en-US', { hour12: false });
+    }
+
+    async function syncNews() {
+        setButtonLoading('syncBtn', true);
+        updateSyncStatus('Syncing intelligence...', 'loading');
+
+        try {
+            const response = await fetch('/collectors/fetch-now/');
+            const data = await response.json();
+            const imported = data.imported || data.total || 0;
+            updateSyncStatus(`Imported: ${imported} articles`, 'success');
+            loadFeed();
+        } catch (error) {
+            console.error('Sync error:', error);
+            updateSyncStatus('Sync failed. Check API.', 'error');
+        } finally {
+            setButtonLoading('syncBtn', false);
+        }
+    }
+
+    async function syncTwitter() {
+        setButtonLoading('twitterBtn', true);
+        updateSyncStatus('Fetching X/Twitter OSINT...', 'loading');
+
+        try {
+            const response = await fetch('/collectors/fetch-twitter/');
+            const data = await response.json();
+            const imported = data.imported || 0;
+            updateSyncStatus(`Twitter/X: ${imported} items`, 'success');
+            loadFeed();
+        } catch (error) {
+            console.error('Twitter sync error:', error);
+            updateSyncStatus('Twitter/X failed. Check API.', 'error');
+        } finally {
+            setButtonLoading('twitterBtn', false);
+        }
+    }
+
+    function applyFilters() {
+        renderFilteredFeed();
+    }
+
+    function getFilteredArticles() {
+        const search = document.getElementById('searchBox').value.toLowerCase();
+        const countryFilter = document.getElementById('countryFilter').value;
+        const priorityFilter = document.getElementById('priorityFilter').value;
+
+        return allArticles.filter(article => {
+            const title = safeText(article.title, '').toLowerCase();
+            const summary = safeText(article.summary, '').toLowerCase();
+            const country = safeText(article.country, '');
+            const priority = safeText(article.priority, '').toUpperCase();
+
+            const matchesSearch = !search || title.includes(search) || summary.includes(search);
+            const matchesCountry = !countryFilter || country === countryFilter;
+            const matchesPriority = !priorityFilter || priority === priorityFilter;
+
+            return matchesSearch && matchesCountry && matchesPriority;
+        });
+    }
+
+    function renderFilteredFeed() {
+        renderFeed(getFilteredArticles());
+    }
+
+    async function loadFeed() {
+        if (isLoading) return;
+        isLoading = true;
+
+        try {
+            const response = await fetch('/api/intelligence-feed/');
+            const data = await response.json();
+
+            allArticles = data.articles || [];
+
+            renderFilteredFeed();
+            updateStats(allArticles);
+            updateCountryFilters(allArticles);
+        } catch (error) {
+            console.error('Feed load error:', error);
+            document.getElementById('feedContainer').innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-exclamation-triangle"></i>
+                    <p>Failed to load intelligence feed. Check API connection.</p>
+                </div>
+            `;
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    function renderFeed(articles) {
+        const container = document.getElementById('feedContainer');
+
+        if (!articles.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fa-solid fa-inbox"></i>
+                    <p>No intelligence found matching your criteria.</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = articles.map(article => {
+            const priority = safeText(article.priority, 'LOW').toUpperCase();
+            const prioritySlug = priority.toLowerCase();
+            const priorityClass = `priority-${prioritySlug}`;
+            const detailUrl = article.id ? `/reports/detail/${article.id}/` : '/reports/';
+            const threatScore = article.threat_score || calculateThreatScore(priority);
+
+            const imageHtml = article.image_url
+                ? `<img class="feed-image" src="${escapeHtml(article.image_url)}" alt="" loading="lazy">`
+                : `<div class="feed-image placeholder"><i class="fa-solid fa-image"></i></div>`;
+
+            return `
+                <article class="feed-card ${priorityClass}" onclick="window.location='${detailUrl}'">
+                    <div class="feed-content">
+                        ${imageHtml}
+                        <div class="feed-body">
+                            <div class="feed-header">
+                                <h3 class="feed-title">${escapeHtml(safeText(article.title, 'Untitled'))}</h3>
+                                <span class="badge-custom badge-priority-${prioritySlug}">${priority}</span>
+                            </div>
+                            <p class="feed-summary">${escapeHtml(safeText(article.summary, 'No summary available.'))}</p>
+                        </div>
+                    </div>
+
+                    <div class="feed-meta">
+                        <span class="badge-custom badge-source">${escapeHtml(safeText(article.source, 'Unknown'))}</span>
+                        <span class="badge-custom badge-country">${escapeHtml(safeText(article.country, 'Global'))}</span>
+                        <span class="badge-custom badge-threat">Threat: ${threatScore}</span>
+                    </div>
+
+                    <div class="feed-actions" onclick="event.stopPropagation();">
+                        <a class="action-link" href="${detailUrl}">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Details
+                        </a>
+                        ${article.source_url ? `
+                            <a class="action-link" href="${escapeHtml(article.source_url)}" target="_blank" rel="noopener">
+                                <i class="fa-solid fa-link"></i> Source
+                            </a>
+                        ` : ''}
+                        ${article.video_url ? `
+                            <a class="action-link" href="${escapeHtml(article.video_url)}" target="_blank" rel="noopener">
+                                <i class="fa-solid fa-video"></i> Video
+                            </a>
+                        ` : ''}
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    function calculateThreatScore(priority) {
+        const scores = {
+            CRITICAL: 95,
+            HIGH: 80,
+            MEDIUM: 50,
+            LOW: 20
+        };
+        return scores[priority] || 20;
+    }
+
+    function updateStats(articles) {
+        const countries = new Set();
+        const sources = new Set();
+        let critical = 0;
+        let high = 0;
+        let totalThreat = 0;
+
+        articles.forEach(article => {
+            if (article.country && article.country !== 'Global') countries.add(article.country);
+            if (article.source) sources.add(article.source);
+
+            const priority = safeText(article.priority, '').toUpperCase();
+            if (priority === 'CRITICAL') critical++;
+            if (priority === 'HIGH') high++;
+
+            totalThreat += parseInt(article.threat_score, 10) || calculateThreatScore(priority);
+        });
+
+        const riskIndex = articles.length ? Math.round(totalThreat / articles.length) : 0;
+
+        document.getElementById('totalNews').textContent = articles.length;
+        document.getElementById('countryCount').textContent = countries.size;
+        document.getElementById('sourceCount').textContent = sources.size;
+        document.getElementById('criticalCount').textContent = critical;
+        document.getElementById('highCount').textContent = high;
+        document.getElementById('riskValue').textContent = riskIndex + '%';
+        document.getElementById('riskFill').style.width = Math.min(riskIndex, 100) + '%';
+    }
+
+    function updateCountryFilters(articles) {
+        const countries = new Set();
+        articles.forEach(article => {
+            if (article.country) countries.add(article.country);
+        });
+
+        const sortedCountries = Array.from(countries).sort();
+
+        const countryFilter = document.getElementById('countryFilter');
+        const currentFilter = countryFilter.value;
+        countryFilter.innerHTML = '<option value="">All Countries</option>' +
+            sortedCountries.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+        countryFilter.value = currentFilter;
+
+        const aiCountry = document.getElementById('aiCountry');
+        const currentAI = aiCountry.value;
+        aiCountry.innerHTML = '<option value="">Select Country</option>' +
+            sortedCountries
+                .filter(c => c !== 'Global')
+                .map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`)
+                .join('');
+        aiCountry.value = currentAI;
+    }
+
+    async function askAIAssistant() {
+        const country = document.getElementById('aiCountry').value;
+        const question = document.getElementById('aiQuestion').value.trim();
+
+        if (!country) {
+            alert('Please select a country');
+            return;
+        }
+
+        const answerBox = document.getElementById('aiAnswer');
+        answerBox.innerHTML = '<div class="spinner"></div>';
+        answerBox.classList.add('loading');
+        setButtonLoading('predictBtn', true);
+
+        try {
+            const params = new URLSearchParams({ country, q: question });
+            const response = await fetch(`/api/ai-prediction/?${params}`);
+            const data = await response.json();
+
+            answerBox.classList.remove('loading');
+            answerBox.innerHTML = data.answer || '<span class="placeholder-text">No prediction available.</span>';
+        } catch (error) {
+            console.error('AI prediction error:', error);
+            answerBox.classList.remove('loading');
+            answerBox.innerHTML = '<span style="color: var(--red)">AI prediction failed. Check API connection.</span>';
+        } finally {
+            setButtonLoading('predictBtn', false);
+        }
+    }
+
+    async function generateSITREP() {
+        const answerBox = document.getElementById('aiAnswer');
+        answerBox.innerHTML = '<div class="spinner"></div>';
+        answerBox.classList.add('loading');
+        setButtonLoading('sitrepBtn', true);
+
+        try {
+            const response = await fetch('/api/daily-sitrep/');
+            const data = await response.json();
+
+            answerBox.classList.remove('loading');
+            answerBox.innerHTML = data.sitrep || '<span class="placeholder-text">No SITREP available.</span>';
+        } catch (error) {
+            console.error('SITREP error:', error);
+            answerBox.classList.remove('loading');
+            answerBox.innerHTML = '<span style="color: var(--red)">SITREP generation failed. Check API connection.</span>';
+        } finally {
+            setButtonLoading('sitrepBtn', false);
+        }
+    }
+
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func(...args), wait);
+        };
+    }
+
+    function initExpandableCards() {
+        const interactiveSelector = 'a, button, input, select, textarea, label';
+
+        document.querySelectorAll('.collapsible-card').forEach(card => {
+            const body = card.querySelector('.card-body-collapsible');
+            const title = card.querySelector('[data-card-toggle]');
+            if (!body || !title) return;
+
+            if (card.classList.contains('is-collapsed')) {
+                body.style.maxHeight = '0px';
+            }
+
+            title.addEventListener('click', event => {
+                if (event.target.closest(interactiveSelector) && !event.target.closest('.card-toggle')) return;
+                toggleCard(card);
+            });
+        });
+
+        document.querySelectorAll('[data-toggle-card]').forEach(card => {
+            card.addEventListener('click', event => {
+                if (event.target.closest(interactiveSelector)) return;
+                card.classList.toggle('is-collapsed');
+            });
+        });
+    }
+
+    function toggleCard(card) {
+        const body = card.querySelector('.card-body-collapsible');
+        if (!body) return;
+
+        const isCollapsed = card.classList.contains('is-collapsed');
+
+        if (isCollapsed) {
+            card.classList.remove('is-collapsed');
+            body.style.maxHeight = body.scrollHeight + 'px';
+            window.setTimeout(() => {
+                if (!card.classList.contains('is-collapsed')) {
+                    body.style.maxHeight = '';
+                }
+            }, 260);
+        } else {
+            body.style.maxHeight = body.scrollHeight + 'px';
+            requestAnimationFrame(() => {
+                card.classList.add('is-collapsed');
+                body.style.maxHeight = '0px';
+            });
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        initExpandableCards();
+        document.getElementById('searchBox').addEventListener('input', debounce(renderFilteredFeed, 300));
+        document.getElementById('countryFilter').addEventListener('change', renderFilteredFeed);
+        document.getElementById('priorityFilter').addEventListener('change', renderFilteredFeed);
+
+        loadFeed();
+        updateClock();
+        setInterval(loadFeed, 30000);
+        setInterval(updateClock, 1000);
+    });
+</script>
+</body>
+</html>

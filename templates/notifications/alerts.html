@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IDIGAS Alerts Center</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:radial-gradient(circle at top,#12213a,#070b10 60%);
+    color:white;
+    font-family:Segoe UI,Arial,sans-serif;
+    padding:25px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:22px;
+}
+
+h1{
+    font-size:32px;
+    font-weight:900;
+    margin-bottom:5px;
+}
+
+.subtitle{
+    color:#8b949e;
+}
+
+.btn{
+    background:#1f6feb;
+    color:white;
+    padding:10px 16px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:bold;
+    display:inline-block;
+    border:0;
+}
+
+.btn-red{
+    background:#da3633;
+}
+
+.btn-green{
+    background:#238636;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background:linear-gradient(180deg,#21262d,#161b22);
+    border:1px solid #30363d;
+    border-radius:14px;
+    padding:18px;
+}
+
+.stat-title{
+    color:#c9d1d9;
+    font-size:14px;
+}
+
+.big{
+    font-size:34px;
+    font-weight:900;
+    margin-top:8px;
+}
+
+.red{
+    color:#ff0033;
+}
+
+.orange{
+    color:#ff7b00;
+}
+
+.yellow{
+    color:#f1c40f;
+}
+
+.blue{
+    color:#58a6ff;
+}
+
+.alert-card{
+    background:#0d1117;
+    border:1px solid #30363d;
+    border-left:6px solid #58a6ff;
+    border-radius:14px;
+    padding:18px;
+    margin-bottom:15px;
+}
+
+.alert-card.critical{
+    border-left-color:#ff0033;
+}
+
+.alert-card.high{
+    border-left-color:#ff7b00;
+}
+
+.alert-card.medium{
+    border-left-color:#f1c40f;
+}
+
+.alert-title{
+    font-size:21px;
+    font-weight:900;
+    margin-bottom:10px;
+}
+
+.summary{
+    color:#c9d1d9;
+    line-height:1.6;
+    margin-bottom:12px;
+}
+
+.badge{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:bold;
+    margin:4px 4px 4px 0;
+}
+
+.critical-badge{
+    background:#ff0033;
+    color:white;
+}
+
+.high-badge{
+    background:#ff7b00;
+    color:white;
+}
+
+.medium-badge{
+    background:#f1c40f;
+    color:black;
+}
+
+.low-badge{
+    background:#238636;
+    color:white;
+}
+
+.info-badge{
+    background:#30363d;
+    color:#c9d1d9;
+}
+
+.news-img{
+    width:100%;
+    max-height:360px;
+    object-fit:cover;
+    border-radius:12px;
+    margin:12px 0;
+    background:#161b22;
+}
+
+.ai-box{
+    margin-top:14px;
+    background:rgba(88,166,255,.08);
+    border:1px solid rgba(88,166,255,.25);
+    padding:13px;
+    border-radius:12px;
+    color:#dbeafe;
+}
+
+.actions{
+    margin-top:14px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+.empty{
+    background:#161b22;
+    border:1px solid #30363d;
+    border-radius:12px;
+    padding:25px;
+    color:#9aa4b2;
+    text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+    <div>
+        <h1>IDIGAS Alert Center</h1>
+        <p class="subtitle">
+            Critical, High Priority and AI-generated intelligence alerts
+        </p>
+    </div>
+
+    <div>
+        <a href="/analytics/threat-radar/" class="btn btn-red">
+            Threat Radar
+        </a>
+
+        <a href="/" class="btn">
+            Back To Dashboard
+        </a>
+    </div>
+</div>
+
+<div class="stats">
+
+    <div class="stat-card">
+        <div class="stat-title">Total Alerts</div>
+        <div class="big blue">{{ total }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Critical</div>
+        <div class="big red">{{ critical }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">High</div>
+        <div class="big orange">{{ high }}</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Medium</div>
+        <div class="big yellow">{{ medium }}</div>
+    </div>
+
+</div>
+
+{% for a in alerts %}
+
+<div class="alert-card
+{% if a.priority == 'CRITICAL' %}
+critical
+{% elif a.priority == 'HIGH' %}
+high
+{% elif a.priority == 'MEDIUM' %}
+medium
+{% endif %}
+">
+
+    <div class="alert-title">
+        {{ a.title }}
+    </div>
+
+    {% if a.image_url %}
+        <img class="news-img" src="{{ a.image_url }}">
+    {% endif %}
+
+    <p class="summary">
+        {{ a.summary|default:"No summary available." }}
+    </p>
+
+    {% if a.priority == "CRITICAL" %}
+        <span class="badge critical-badge">CRITICAL</span>
+    {% elif a.priority == "HIGH" %}
+        <span class="badge high-badge">HIGH</span>
+    {% elif a.priority == "MEDIUM" %}
+        <span class="badge medium-badge">MEDIUM</span>
+    {% else %}
+        <span class="badge low-badge">LOW</span>
+    {% endif %}
+
+    <span class="badge info-badge">
+        Country: {{ a.country|default:"Global" }}
+    </span>
+
+    <span class="badge info-badge">
+        Source: {{ a.source|default:"Unknown" }}
+    </span>
+
+    <span class="badge info-badge">
+        Published:
+        {% if a.published_date %}
+            {{ a.published_date }}
+        {% elif a.created_at %}
+            {{ a.created_at }}
+        {% else %}
+            Not Available
+        {% endif %}
+    </span>
+
+    <div class="ai-box">
+        <b>AI Threat Assessment:</b>
+        <br><br>
+
+        {% if a.priority == "CRITICAL" %}
+            Immediate monitoring recommended. High-confidence intelligence event with possible military, cyber, terrorism or geopolitical significance.
+        {% elif a.priority == "HIGH" %}
+            High-risk development. Requires analyst review, source validation and follow-up monitoring.
+        {% elif a.priority == "MEDIUM" %}
+            Watchlist item. Monitor future developments and related intelligence activity.
+        {% else %}
+            Low-priority informational update stored for trend analysis.
+        {% endif %}
+    </div>
+
+    <div class="actions">
+        <a class="btn" href="/reports/detail/{{ a.id }}/">
+            Open Detail
+        </a>
+
+        {% if a.source_url %}
+            <a class="btn btn-green" href="{{ a.source_url }}" target="_blank">
+                Open Original Source
+            </a>
+        {% endif %}
+
+        {% if a.video_url %}
+            <a class="btn btn-red" href="{{ a.video_url }}" target="_blank">
+                Open Video
+            </a>
+        {% endif %}
+    </div>
+
+</div>
+
+{% empty %}
+
+<div class="empty">
+    No alerts available. Click Sync Intelligence from dashboard.
+</div>
+
+{% endfor %}
+
+</body>
+</html>

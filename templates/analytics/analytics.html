@@ -1,0 +1,19 @@
+<body style="background:#0d1117;color:white;font-family:Segoe UI;padding:30px;">
+
+<h2>Analytics</h2>
+<p>Latest intelligence database analysis</p>
+
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:15px;margin-bottom:20px;">
+    <div style="background:#161b22;padding:20px;border-radius:10px;">Total: {{ articles|length }}</div>
+</div>
+
+{% for a in articles %}
+<div style="background:#161b22;border:1px solid #30363d;padding:15px;margin-bottom:10px;border-radius:10px;">
+    <h4>{{ a.title }}</h4>
+    <p>{{ a.summary }}</p>
+    <b>Priority:</b> {{ a.priority }} |
+    <b>Country:</b> {{ a.country }}
+</div>
+{% endfor %}
+
+</body>

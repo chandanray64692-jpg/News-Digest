@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IDIGAS Threat Radar</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    background:radial-gradient(circle at top,#12213a,#070b10 60%);
+    color:white;
+    font-family:Segoe UI,Arial,sans-serif;
+}
+
+.page{
+    padding:25px;
+}
+
+.topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+h1{
+    font-size:30px;
+    font-weight:900;
+}
+
+.subtitle{
+    color:#9aa4b2;
+    margin-top:5px;
+}
+
+.back-btn{
+    text-decoration:none;
+    background:#1f6feb;
+    color:white;
+    padding:10px 18px;
+    border-radius:10px;
+    font-weight:700;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    background:linear-gradient(180deg,#21262d,#161b22);
+    border:1px solid #30363d;
+    border-radius:16px;
+    padding:18px;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);
+}
+
+.stat-title{
+    color:#c9d1d9;
+    font-size:14px;
+}
+
+.stat-value{
+    font-size:34px;
+    font-weight:900;
+    margin-top:8px;
+}
+
+.red{color:#ff4d5e}
+.yellow{color:#ffd33d}
+.blue{color:#58a6ff}
+.green{color:#3fb950}
+
+.radar-layout{
+    display:grid;
+    grid-template-columns:320px 1fr;
+    gap:18px;
+}
+
+.panel-title{
+    font-size:18px;
+    font-weight:800;
+    margin-bottom:12px;
+}
+
+.filter input,
+.filter select{
+    width:100%;
+    background:#0d1117;
+    border:1px solid #30363d;
+    color:white;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+}
+
+.filter button{
+    width:100%;
+    background:linear-gradient(135deg,#1f6feb,#58a6ff);
+    border:0;
+    color:white;
+    padding:12px;
+    border-radius:10px;
+    font-weight:800;
+    cursor:pointer;
+}
+
+.risk-box{
+    margin-top:15px;
+}
+
+.risk-meter{
+    height:12px;
+    background:#0d1117;
+    border:1px solid #30363d;
+    border-radius:20px;
+    overflow:hidden;
+    margin-top:10px;
+}
+
+.risk-fill{
+    height:100%;
+    width:0%;
+    background:linear-gradient(90deg,#238636,#d29922,#da3633,#ff0033);
+}
+
+.news-list{
+    max-height:calc(100vh - 220px);
+    overflow:auto;
+    padding-right:8px;
+}
+
+.news-list::-webkit-scrollbar{
+    width:6px;
+}
+
+.news-list::-webkit-scrollbar-thumb{
+    background:#30363d;
+    border-radius:10px;
+}
+
+.alert-card{
+    background:#0d1117;
+    border:1px solid #30363d;
+    border-left:5px solid #58a6ff;
+    border-radius:14px;
+    padding:16px;
+    margin-bottom:14px;
+    transition:.2s;
+}
+
+.alert-card:hover{
+    transform:translateY(-2px);
+    border-color:#58a6ff;
+}
+
+.alert-title{
+    font-size:18px;
+    font-weight:900;
+    margin-bottom:8px;
+}
+
+.summary{
+    color:#c9d1d9;
+    line-height:1.5;
+    margin-bottom:12px;
+}
+
+.meta{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:10px;
+}
+
+.badge{
+    display:inline-block;
+    padding:6px 10px;
+    border-radius:8px;
+    font-size:12px;
+    font-weight:800;
+}
+
+.critical{
+    background:#ff0033;
+    color:white;
+}
+
+.high{
+    background:#da3633;
+    color:white;
+}
+
+.medium{
+    background:#d29922;
+    color:black;
+}
+
+.low{
+    background:#238636;
+    color:white;
+}
+
+.info{
+    background:#30363d;
+    color:#c9d1d9;
+}
+
+.ai-box{
+    margin-top:10px;
+    background:rgba(88,166,255,.08);
+    border:1px solid rgba(88,166,255,.25);
+    padding:12px;
+    border-radius:12px;
+    color:#dbeafe;
+}
+
+.source-link{
+    color:#58a6ff;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.empty{
+    padding:30px;
+    text-align:center;
+    color:#9aa4b2;
+}
+</style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="topbar">
+        <div>
+            <h1>IDIGAS Threat Radar</h1>
+            <div class="subtitle">HIGH and CRITICAL intelligence alerts with AI-style analysis</div>
+        </div>
+
+        <a class="back-btn" href="/">Back to Dashboard</a>
+    </div>
+
+    <div class="grid">
+        <div class="card">
+            <div class="stat-title">Total Threat Articles</div>
+            <div id="totalCount" class="stat-value blue">0</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title">Critical Alerts</div>
+            <div id="criticalCount" class="stat-value red">0</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title">High Alerts</div>
+            <div id="highCount" class="stat-value yellow">0</div>
+        </div>
+
+        <div class="card">
+            <div class="stat-title">Radar Risk Index</div>
+            <div id="riskIndex" class="stat-value red">0%</div>
+        </div>
+    </div>
+
+    <div class="radar-layout">
+
+        <div>
+            <div class="card filter">
+                <div class="panel-title">Radar Filters</div>
+
+                <input id="searchBox" type="text" placeholder="Search title or summary...">
+
+                <select id="priorityFilter">
+                    <option value="">All Priority</option>
+                    <option value="CRITICAL">Critical</option>
+                    <option value="HIGH">High</option>
+                    <option value="MEDIUM">Medium</option>
+                    <option value="LOW">Low</option>
+                </select>
+
+                <select id="countryFilter">
+                    <option value="">All Countries</option>
+                </select>
+
+                <button onclick="applyFilter()">Apply Filter</button>
+
+                <div class="risk-box">
+                    <div class="panel-title" style="margin-top:18px;">Threat Risk Meter</div>
+                    <div class="risk-meter">
+                        <div id="riskFill" class="risk-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="panel-title">Live Threat Intelligence</div>
+
+            <div id="newsList" class="news-list">
+
+                {% for a in articles %}
+                <div class="alert-card"
+                     data-title="{{ a.title|escape }}"
+                     data-summary="{{ a.summary|escape }}"
+                     data-country="{{ a.country }}"
+                     data-priority="{{ a.priority }}">
+
+                    <div class="alert-title">{{ a.title }}</div>
+
+                    <div class="summary">
+                        {{ a.summary|default:"No detailed summary available." }}
+                    </div>
+
+                    <div class="meta">
+                        {% if a.priority == "CRITICAL" %}
+                            <span class="badge critical">CRITICAL</span>
+                        {% elif a.priority == "HIGH" %}
+                            <span class="badge high">HIGH</span>
+                        {% elif a.priority == "MEDIUM" %}
+                            <span class="badge medium">MEDIUM</span>
+                        {% else %}
+                            <span class="badge low">{{ a.priority }}</span>
+                        {% endif %}
+
+                        <span class="badge info">Country: {{ a.country|default:"Global" }}</span>
+                        <span class="badge info">Category: {{ a.category|default:"General" }}</span>
+                        <span class="badge info">Source: {{ a.source|default:"Unknown" }}</span>
+                        <span class="badge info">Published: {{ a.published_date|default:a.created_at }}</span>
+                    </div>
+
+                    <div class="ai-box">
+                        <b>AI Threat Assessment:</b>
+                        {% if a.priority == "CRITICAL" %}
+                            Critical level intelligence. Immediate monitoring recommended. This may indicate severe security, conflict, terror, military, or cyber impact.
+                        {% elif a.priority == "HIGH" %}
+                            High risk intelligence. Situation requires close tracking and further verification from trusted sources.
+                        {% elif a.priority == "MEDIUM" %}
+                            Medium risk intelligence. Relevant for watchlist and trend monitoring.
+                        {% else %}
+                            Low risk intelligence. Routine monitoring recommended.
+                        {% endif %}
+                    </div>
+
+                </div>
+                {% empty %}
+                <div class="empty">
+                    No high or critical threat intelligence found.
+                </div>
+                {% endfor %}
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+function getThreatValue(priority){
+    priority = String(priority).toUpperCase();
+
+    if(priority === "CRITICAL") return 95;
+    if(priority === "HIGH") return 80;
+    if(priority === "MEDIUM") return 50;
+    return 20;
+}
+
+function updateStats(){
+    let cards = document.querySelectorAll(".alert-card");
+    let visibleCards = Array.from(cards).filter(c => c.style.display !== "none");
+
+    let critical = 0;
+    let high = 0;
+    let totalThreat = 0;
+    let countries = new Set();
+
+    visibleCards.forEach(card => {
+        let p = card.dataset.priority.toUpperCase();
+        let country = card.dataset.country;
+
+        if(p === "CRITICAL") critical++;
+        if(p === "HIGH") high++;
+
+        totalThreat += getThreatValue(p);
+
+        if(country){
+            countries.add(country);
+        }
+    });
+
+    let risk = visibleCards.length ? Math.round(totalThreat / visibleCards.length) : 0;
+
+    document.getElementById("totalCount").innerHTML = visibleCards.length;
+    document.getElementById("criticalCount").innerHTML = critical;
+    document.getElementById("highCount").innerHTML = high;
+    document.getElementById("riskIndex").innerHTML = risk + "%";
+    document.getElementById("riskFill").style.width = risk + "%";
+}
+
+function loadCountries(){
+    let select = document.getElementById("countryFilter");
+    let cards = document.querySelectorAll(".alert-card");
+    let countries = new Set();
+
+    cards.forEach(card => {
+        let country = card.dataset.country;
+        if(country){
+            countries.add(country);
+        }
+    });
+
+    let html = '<option value="">All Countries</option>';
+
+    Array.from(countries).sort().forEach(country => {
+        html += `<option value="${country}">${country}</option>`;
+    });
+
+    select.innerHTML = html;
+}
+
+function applyFilter(){
+    let search = document.getElementById("searchBox").value.toLowerCase();
+    let priority = document.getElementById("priorityFilter").value.toUpperCase();
+    let country = document.getElementById("countryFilter").value;
+
+    let cards = document.querySelectorAll(".alert-card");
+
+    cards.forEach(card => {
+        let title = card.dataset.title.toLowerCase();
+        let summary = card.dataset.summary.toLowerCase();
+        let cardPriority = card.dataset.priority.toUpperCase();
+        let cardCountry = card.dataset.country;
+
+        let searchOk = title.includes(search) || summary.includes(search);
+        let priorityOk = priority === "" || cardPriority === priority;
+        let countryOk = country === "" || cardCountry === country;
+
+        if(searchOk && priorityOk && countryOk){
+            card.style.display = "block";
+        }else{
+            card.style.display = "none";
+        }
+    });
+
+    updateStats();
+}
+
+document.getElementById("searchBox").addEventListener("keyup", applyFilter);
+
+loadCountries();
+updateStats();
+</script>
+
+</body>
+</html>

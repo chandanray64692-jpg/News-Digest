@@ -1,0 +1,740 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>IDIGAS World Intelligence Map</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+    background:#0d1117;
+    color:white;
+    font-family:Segoe UI,Arial,sans-serif;
+    overflow:hidden;
+}
+
+.container{
+    display:flex;
+    height:100vh;
+}
+
+#map{
+    width:75%;
+    height:100vh;
+}
+
+.sidebar{
+    width:25%;
+    background:#161b22;
+    border-left:1px solid #30363d;
+    overflow-y:auto;
+    padding:15px;
+}
+
+.header{
+    background:#21262d;
+    padding:14px;
+    border-radius:10px;
+    margin-bottom:15px;
+}
+
+.header h3{
+    color:#58a6ff;
+    font-size:20px;
+}
+
+.header p{
+    font-size:13px;
+    color:#c9d1d9;
+    margin-top:4px;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-bottom:15px;
+}
+
+.stat{
+    background:#21262d;
+    padding:12px;
+    border-radius:10px;
+    text-align:center;
+    font-size:13px;
+}
+
+.stat-value{
+    font-size:22px;
+    font-weight:900;
+    color:#58a6ff;
+}
+
+.btn{
+    width:100%;
+    padding:10px;
+    background:#58a6ff;
+    border:none;
+    color:black;
+    font-weight:bold;
+    border-radius:8px;
+    cursor:pointer;
+    margin-bottom:10px;
+}
+
+.btn-green{
+    background:#238636;
+    color:white;
+}
+
+.news-card{
+    background:#21262d;
+    padding:12px;
+    border-radius:10px;
+    margin-bottom:10px;
+    border-left:4px solid #58a6ff;
+}
+
+.news-card.high{
+    border-left-color:#da3633;
+}
+
+.news-card.critical{
+    border-left-color:#ff0033;
+}
+
+.news-card h5{
+    font-size:14px;
+    margin-bottom:6px;
+    line-height:1.3;
+}
+
+.news-card p{
+    font-size:12px;
+    color:#bdbdbd;
+    line-height:1.4;
+}
+
+.news-img{
+    width:100%;
+    max-height:130px;
+    object-fit:cover;
+    border-radius:8px;
+    margin:8px 0;
+    background:#0d1117;
+}
+
+.badge{
+    display:inline-block;
+    padding:4px 8px;
+    border-radius:5px;
+    font-size:11px;
+    margin-top:6px;
+    font-weight:bold;
+    background:#30363d;
+}
+
+.priority-CRITICAL{
+    background:#ff0033;
+    color:white;
+}
+
+.priority-HIGH{
+    background:#da3633;
+    color:white;
+}
+
+.priority-MEDIUM{
+    background:#d29922;
+    color:black;
+}
+
+.priority-LOW{
+    background:#238636;
+    color:white;
+}
+
+.source-link{
+    display:inline-block;
+    margin-top:8px;
+    color:#58a6ff;
+    text-decoration:none;
+    font-size:12px;
+    font-weight:bold;
+}
+
+.error{
+    color:#ff7b72;
+}
+
+.info-box{
+    background:#0d1117;
+    border:1px solid #30363d;
+    padding:10px;
+    border-radius:10px;
+    color:#8b949e;
+    font-size:12px;
+    margin-bottom:10px;
+}
+
+.popup-title{
+    font-weight:bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div id="map"></div>
+
+    <div class="sidebar">
+
+        <div class="header">
+            <h3 id="countryTitle">Global Intelligence</h3>
+            <p id="countryInfo">Latest world news loading...</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div>Total News</div>
+                <div id="newsCount" class="stat-value">0</div>
+            </div>
+
+            <div class="stat">
+                <div>Threat</div>
+                <div id="threatScore" class="stat-value">0</div>
+            </div>
+        </div>
+
+        <button class="btn" onclick="refreshCountryNews()">Refresh Intelligence</button>
+        <button class="btn btn-green" onclick="loadLatestNews()">Show Global News</button>
+
+        <div class="info-box">
+            Click any country on the map to view country-wise intelligence. If country boundary file is missing, global news will still show here.
+        </div>
+
+        <div id="countryNews">
+            <div class="news-card">
+                Loading global intelligence...
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<script>
+let selectedCountry = "";
+let mapPointsLayer = L.layerGroup();
+let countryLayer = null;
+
+const map = L.map("map").setView([20, 0], 2);
+
+L.tileLayer(
+    "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    {
+        maxZoom:18,
+        attribution:"© OpenStreetMap"
+    }
+).addTo(map);
+
+mapPointsLayer.addTo(map);
+
+
+// ===============================
+// SAFE TEXT
+// ===============================
+
+function safe(value){
+    return value ? value : "";
+}
+
+function getPriorityClass(priority){
+    priority = safe(priority).toUpperCase();
+
+    if(priority === "CRITICAL") return "priority-CRITICAL";
+    if(priority === "HIGH") return "priority-HIGH";
+    if(priority === "MEDIUM") return "priority-MEDIUM";
+    return "priority-LOW";
+}
+
+function getCardClass(priority){
+    priority = safe(priority).toUpperCase();
+
+    if(priority === "CRITICAL") return "critical";
+    if(priority === "HIGH") return "high";
+    return "";
+}
+
+
+// ===============================
+// WORLD GEOJSON LOAD
+// ===============================
+
+fetch("/static/data/world.geojson?v=3")
+.then(response => {
+    if(!response.ok){
+        throw new Error("world.geojson not found");
+    }
+    return response.json();
+})
+.then(data => {
+
+    countryLayer = L.geoJSON(data, {
+
+        style:function(){
+            return {
+                color:"#58a6ff",
+                weight:1,
+                fillColor:"#58a6ff",
+                fillOpacity:0.12
+            };
+        },
+
+        onEachFeature:function(feature, layer){
+
+            let countryName =
+                feature.properties.name ||
+                feature.properties.ADMIN ||
+                feature.properties.NAME ||
+                feature.properties.Country ||
+                "";
+
+            layer.bindTooltip(countryName);
+
+            layer.on({
+
+                mouseover:function(e){
+                    e.target.setStyle({
+                        fillOpacity:.45
+                    });
+                },
+
+                mouseout:function(e){
+                    e.target.setStyle({
+                        fillOpacity:.12
+                    });
+                },
+
+                click:function(){
+                    if(countryName){
+                        selectedCountry = countryName;
+                        loadCountryNews(selectedCountry);
+                    }
+                }
+
+            });
+
+        }
+
+    }).addTo(map);
+
+})
+.catch(error => {
+    document.getElementById("countryInfo").innerHTML =
+        "World boundary file missing. Showing global news only.";
+
+    console.log("GeoJSON error:", error);
+});
+
+
+// ===============================
+// GLOBAL LATEST NEWS
+// ===============================
+
+function loadLatestNews(){
+
+    selectedCountry = "";
+
+    document.getElementById("countryTitle").innerHTML = "Global Intelligence";
+    document.getElementById("countryInfo").innerHTML = "Loading latest world news...";
+    document.getElementById("countryNews").innerHTML =
+        '<div class="news-card">Loading global news...</div>';
+
+    fetch("/mapintel/api/latest-news/")
+    .then(response => response.json())
+    .then(data => {
+
+        let articles = data.articles || [];
+        renderArticles(articles, "Latest Global News");
+
+    })
+    .catch(error => {
+        document.getElementById("countryNews").innerHTML =
+            '<div class="news-card error">API Error. Check /mapintel/api/latest-news/</div>';
+    });
+
+}
+
+
+// ===============================
+// MAP POINTS LOAD
+// ===============================
+
+function loadMapPoints(){
+
+    mapPointsLayer.clearLayers();
+
+    fetch("/mapintel/api/map-points/")
+    .then(response => response.json())
+    .then(points => {
+
+        points.forEach(point => {
+
+            if(!point.lat || !point.lon){
+                return;
+            }
+
+            let color = "#238636";
+
+            if(point.priority === "CRITICAL"){
+                color = "#ff0033";
+            }
+
+            if(point.priority === "HIGH"){
+                color = "#da3633";
+            }
+
+            if(point.priority === "MEDIUM"){
+                color = "#d29922";
+            }
+
+            const marker = L.circleMarker(
+                [point.lat, point.lon],
+                {
+                    radius:8,
+                    color:color,
+                    fillColor:color,
+                    fillOpacity:0.85,
+                    weight:2
+                }
+            );
+
+            marker.bindPopup(
+                "<div class='popup-title'>" + safe(point.country) + "</div>" +
+                "<div>" + safe(point.title) + "</div>" +
+                "<br>Priority: <b>" + safe(point.priority) + "</b>" +
+                "<br>Threat Score: <b>" + safe(point.threat) + "</b>"
+            );
+
+            marker.on("click", function(){
+                selectedCountry = point.country;
+                loadCountryNews(point.country);
+            });
+
+            marker.addTo(mapPointsLayer);
+
+        });
+
+    })
+    .catch(error => {
+        console.log("Map points error:", error);
+    });
+
+}
+
+
+// ===============================
+// COUNTRY NEWS REFRESH
+// ===============================
+
+function refreshCountryNews(){
+
+    if(selectedCountry !== ""){
+        loadCountryNews(selectedCountry);
+    }else{
+        loadLatestNews();
+    }
+
+}
+
+
+// ===============================
+// COUNTRY NEWS LOAD
+// ===============================
+
+function loadCountryNews(country){
+
+    document.getElementById("countryTitle").innerHTML = country;
+    document.getElementById("countryInfo").innerHTML = "Loading country intelligence...";
+    document.getElementById("countryNews").innerHTML =
+        '<div class="news-card">Loading...</div>';
+
+    fetch("/mapintel/api/country-news/?country=" + encodeURIComponent(country))
+    .then(response => response.json())
+    .then(data => {
+
+        let articles = data.articles || [];
+
+        renderArticles(articles, country + " Intelligence");
+
+    })
+    .catch(error => {
+
+        document.getElementById("countryNews").innerHTML =
+            '<div class="news-card error">API Error. Check /mapintel/api/country-news/ URL.</div>';
+
+        document.getElementById("countryInfo").innerHTML =
+            "Backend API error";
+
+    });
+
+}
+
+
+// ===============================
+// ARTICLE RENDER
+// ===============================
+
+function renderArticles(articles, label){
+
+    let html = "";
+    let threat = 0;
+
+    document.getElementById("newsCount").innerHTML = articles.length;
+
+    articles.forEach(article => {
+
+        let p = safe(article.priority).toUpperCase();
+
+        let score = parseInt(article.threat_score || article.threat || 0);
+
+        if(!score){
+            if(p === "CRITICAL") score = 95;
+            else if(p === "HIGH") score = 80;
+            else if(p === "MEDIUM") score = 50;
+            else score = 20;
+        }
+
+        threat += score;
+
+        let img = "";
+        if(article.image_url){
+            img = `<img class="news-img" src="${article.image_url}">`;
+        }
+
+        let sourceBtn = "";
+        if(article.source_url){
+            sourceBtn = `<a class="source-link" target="_blank" href="${article.source_url}">Open Source</a>`;
+        }
+
+        html += `
+            <div class="news-card ${getCardClass(p)}">
+                <h5>${safe(article.title)}</h5>
+                ${img}
+                <p>${safe(article.summary) || "No summary available"}</p>
+
+                <span class="badge ${getPriorityClass(p)}">
+                    ${p || "LOW"}
+                </span>
+
+                <span class="badge">
+                    ${safe(article.country) || "Global"}
+                </span>
+
+                ${sourceBtn}
+            </div>
+        `;
+
+    });
+
+    if(html === ""){
+        html = `
+            <div class="news-card">
+                No Intelligence Available
+            </div>
+        `;
+    }
+
+    let avgThreat = articles.length ? Math.round(threat / articles.length) : 0;
+
+    document.getElementById("countryNews").innerHTML = html;
+    document.getElementById("threatScore").innerHTML = avgThreat;
+    document.getElementById("countryInfo").innerHTML =
+        articles.length + " News Records Found - " + label;
+
+}
+
+
+// ===============================
+// START
+// ===============================
+
+loadMapPoints();
+loadLatestNews();
+
+setInterval(function(){
+
+    loadMapPoints();
+
+    if(selectedCountry !== ""){
+        loadCountryNews(selectedCountry);
+    }else{
+        loadLatestNews();
+    }
+
+}, 60000);
+</script>
+
+</body>
+</html>
+<script>
+    // Map initialization
+    if (typeof map !== 'undefined') {
+        fetch('/static/data/world.geojson')
+            .then(res => res.json())
+            .then(data => {
+                L.geoJson(data, {
+                    style: {
+                        color: "#58a6ff",
+                        weight: 1,
+                        fillColor: "#161b22",
+                        fillOpacity: 0.4
+                    },
+                    onEachFeature: function(feature, layer) {
+                        layer.on('mouseover', function() {
+                            this.setStyle({ fillOpacity: 0.7, fillColor: "#da3633" });
+                        });
+                        layer.on('mouseout', function() {
+                            this.setStyle({ fillOpacity: 0.4, fillColor: "#161b22" });
+                        });
+                        layer.on('click', function() {
+                            const countryName = feature.properties.name || feature.properties.ADMIN;
+                            if (typeof filterCountryNews === 'function') {
+                                filterCountryNews(countryName);
+                            }
+                        });
+                    }
+                }).addTo(map);
+            }).catch(e => console.log("Local GeoJSON load fallback:", e));
+    }
+</script>
+
+<script>
+// 1. Force Clean Dark Tiles (No 403, No Watermark)
+document.addEventListener("DOMContentLoaded", function() {
+    setTimeout(function() {
+        if (typeof map !== 'undefined') {
+            map.eachLayer(function(layer) {
+                if (layer instanceof L.TileLayer) {
+                    map.removeLayer(layer);
+                }
+            });
+            L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                attribution: 'Tiles &copy; Esri &mdash; Military Command Recon',
+                maxZoom: 16
+            }).addTo(map);
+        }
+    }, 400);
+});
+
+// 2. Global Country News Dynamic Filter
+window.filterCountryNews = function(countryName) {
+    if (!countryName) return;
+
+    // Update Header
+    const headers = document.querySelectorAll("h4, h5, .card-title, #country-title, #selected-country");
+    headers.forEach(h => {
+        if (h.innerText.toLowerCase().includes("intelligence") || h.innerText.toLowerCase().includes("global")) {
+            h.innerText = countryName.toUpperCase() + " // TACTICAL INTELLIGENCE";
+        }
+    });
+
+    fetch('/mapintel/api/latest-news/')
+        .then(res => res.json())
+        .then(data => {
+            const list = Array.isArray(data) ? data : (data.articles || data.results || data.news || []);
+
+            const filtered = list.filter(art => {
+                const c = (
+                    art.country_name || 
+                    (art.country && typeof art.country === 'object' ? art.country.name : art.country) || 
+                    art.country_focus || 
+                    ''
+                ).toString().toLowerCase();
+
+                const target = countryName.toLowerCase();
+                return c.includes(target) || target.includes(c);
+            });
+
+            // Target right drawer container
+            const container = document.querySelector("#latest-news-container, #news-list, #country-news-list, .news-feed-list, .list-group, [class*='news']");
+            if (!container) return;
+
+            const countEl = document.querySelector("#total-news-count, .badge-count, #news-count");
+            if (countEl) countEl.innerText = filtered.length;
+
+            container.innerHTML = "";
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div style="padding: 25px; text-align: center; color: #8b949e;">
+                        <i class="fa-solid fa-satellite-dish fa-2x mb-2" style="color: #58a6ff;"></i>
+                        <p style="margin: 0; font-size: 13px;">No active intercepts logged for <strong>${countryName}</strong>.</p>
+                    </div>`;
+                return;
+            }
+
+            filtered.forEach(art => {
+                const priority = (art.priority || 'NORMAL').toUpperCase();
+                const badgeColor = (priority === 'CRITICAL' || priority === 'HIGH') ? '#da3633' : '#58a6ff';
+                const dateStr = art.published_at || art.created_at || 'Recent Intercept';
+                const category = art.category__name || (art.category && art.category.name ? art.category.name : art.category) || 'DEFENCE';
+
+                container.innerHTML += `
+                    <div style="background: #21262d; border: 1px solid #30363d; border-radius: 6px; padding: 12px; margin-bottom: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <span style="background: ${badgeColor}; color: white; font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px; text-transform: uppercase;">
+                                ${priority}
+                            </span>
+                            <small style="color: #8b949e; font-family: monospace; font-size: 10px;">${dateStr}</small>
+                        </div>
+                        <h6 style="color: #ffffff; font-weight: 600; font-size: 13px; margin: 0 0 5px 0;">${art.title}</h6>
+                        <p style="color: #8b949e; font-size: 12px; margin: 0 0 6px 0; line-height: 1.4;">${art.summary || ''}</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #30363d; padding-top: 5px;">
+                            <span style="color: #58a6ff; font-family: monospace; font-size: 11px;">
+                                <i class="fa-solid fa-shield-halved"></i> ${category}
+                            </span>
+                            ${art.source_url ? `<a href="${art.source_url}" target="_blank" style="color: #8b949e; text-decoration: none; font-size: 11px;">Source &rarr;</a>` : ''}
+                        </div>
+                    </div>`;
+            });
+        })
+        .catch(err => console.error("Filter telemetry error:", err));
+};
+
+// 3. Attach Boundary Layer and Click Handlers
+document.addEventListener("DOMContentLoaded", function() {
+    let checkInterval = setInterval(function() {
+        if (typeof map !== 'undefined') {
+            fetch('/static/data/world.geojson')
+                .then(r => r.json())
+                .then(geoData => {
+                    L.geoJson(geoData, {
+                        style: { color: "#58a6ff", weight: 1, fillColor: "#161b22", fillOpacity: 0.2 },
+                        onEachFeature: function(feature, layer) {
+                            const props = feature.properties;
+                            const cName = props.name || props.ADMIN || props.NAME || props.NAME_LONG;
+                            
+                            layer.on('mouseover', function() { this.setStyle({ fillOpacity: 0.6, fillColor: "#da3633" }); });
+                            layer.on('mouseout', function() { this.setStyle({ fillOpacity: 0.2, fillColor: "#161b22" }); });
+                            layer.on('click', function(e) {
+                                if (L.DomEvent) L.DomEvent.stopPropagation(e);
+                                window.filterCountryNews(cName);
+                            });
+                        }
+                    }).addTo(map);
+                }).catch(e => console.log("GeoJSON fetch notice:", e));
+            
+            clearInterval(checkInterval);
+        }
+    }, 600);
+});
+</script>
